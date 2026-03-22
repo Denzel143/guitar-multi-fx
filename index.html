@@ -1,417 +1,1070 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Messenger Pro</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        :root { --neon: #00f3ff; --dark: #050505; --panel: #111; --border: #333; --glass: rgba(0, 243, 255, 0.05); }
-        * { box-sizing: border-box; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', monospace; margin: 0; height: 100vh; display: flex; overflow: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GuitarFX-S3 — USB Controller</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0e0e;--board:#1a1410;--metal-hi:#3a3530;
+  --text:#c8c0b4;--text-dim:#6a6460;--text-val:#f0e8d0;
+  --led-off:#2a1810;--accent-yl:#e0c040;--screw:#4a4540;
+}
+html{font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;
+  min-height:100vh;overflow-x:hidden;cursor:default;user-select:none}
+body::before{content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:200px 200px;pointer-events:none;z-index:9999;opacity:.4}
 
-        /* MODALS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; justify-content: center; align-items: center; }
-        .modal-box { background: #222; border: 1px solid var(--neon); padding: 20px; width: 320px; border-radius: 10px; text-align: center; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
-        .hidden { display: none !important; }
+/* ── HEADER ── */
+header{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;background:linear-gradient(180deg,#1a1814 0%,#121010 100%);
+  border-bottom:1px solid #3a3228;position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 24px rgba(0,0,0,.7);gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:baseline;gap:8px}
+.logo-main{font-size:1.9rem;font-weight:900;letter-spacing:.08em;color:var(--text-val);
+  text-shadow:0 0 24px rgba(240,180,60,.18)}
+.logo-sub{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--text-dim);
+  letter-spacing:.2em}
+.header-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ble-status{display:flex;align-items:center;gap:7px;font-family:'Share Tech Mono',monospace;
+  font-size:.75rem;color:var(--text-dim)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--led-off);
+  box-shadow:0 0 0 2px #1a1814;transition:background .3s,box-shadow .3s}
+.status-dot.conn{background:#40f080;box-shadow:0 0 10px #40f08088,0 0 3px #fff}
+.status-dot.scan{background:var(--accent-yl);box-shadow:0 0 10px #e0c04088;animation:pulse .8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#statusLabel{min-width:88px}
+.btn{padding:7px 18px;border:none;border-radius:3px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  background:linear-gradient(180deg,#3a3028 0%,#1e1a14 100%);
+  color:var(--text-val);border:1px solid #4a4038;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+  transition:all .15s}
+.btn:hover{background:linear-gradient(180deg,#504540 0%,#2e2820 100%);color:#fff}
+.btn:active{transform:translateY(1px)}
+.btn.connected{border-color:#40f08060;color:#80f0a0}
 
-        /* LAYOUT */
-        .sidebar { width: 320px; background: var(--panel); border-right: 1px solid --border; display: flex; flex-direction: column; }
-        .main { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:2px solid #252220;
+  background:#0e0e0e;padding:0 20px;position:sticky;top:57px;z-index:99}
+.tab{padding:10px 24px;font-size:.9rem;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--text-dim);background:none;border:none;
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:color .15s,border-color .15s;font-family:'Barlow Condensed',sans-serif}
+.tab:hover{color:var(--text-val)}
+.tab.active{color:var(--text-val);border-bottom-color:#f06020}
+.tab-icon{margin-right:6px;opacity:.7}
+.section-content{display:none}
+.section-content.active{display:block}
 
-        /* COMPONENTS */
-        .my-profile { padding: 20px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
-        .list-header { padding: 10px 20px; background: #1a1a1a; font-size: 0.7em; color: gray; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
-        .contact-list { overflow-y: auto; flex: 1; }
-        
-        .contact-item { padding: 12px 20px; border-bottom: 1px solid #222; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
-        .contact-item:hover { background: var(--glass); }
-        .contact-item.active { background: rgba(0, 243, 255, 0.1); border-left: 3px solid var(--neon); }
-        
-        .unsaved-item { background: rgba(255, 0, 0, 0.05); border-left: 3px solid red; }
-        .btn-save { background: var(--neon); border: none; color: black; padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        .btn-ignore { background: #333; border: 1px solid #555; color: white; padding: 2px 8px; cursor: pointer; border-radius: 4px; }
+/* ── SECTION WRAPPER ── */
+.section-label{font-size:.68rem;letter-spacing:.35em;color:var(--text-dim);
+  text-transform:uppercase;margin-bottom:10px}
+.board-outer{margin:18px auto;max-width:1400px;padding:0 14px}
 
-        /* CHAT & INPUT */
-        #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 70%; padding: 10px 15px; border-radius: 8px; font-size: 0.9em; word-wrap: break-word; }
-        .msg.me { background: var(--neon); color: black; align-self: flex-end; }
-        .msg.them { background: #222; align-self: flex-start; border-left: 2px solid var(--neon); }
-        
-        .chat-input { padding: 15px; background: var(--panel); display: flex; gap: 10px; }
-        input { width: 100%; padding: 10px; background: black; border: 1px solid #444; color: white; border-radius: 4px; outline: none; }
-        button.primary { padding: 10px; background: var(--neon); color: black; font-weight: bold; border: none; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px;}
-    </style>
+/* ── PEDALBOARD ── */
+.pedalboard{
+  background:
+    repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px),
+    repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px),
+    linear-gradient(180deg,#1a1208 0%,#120e06 100%);
+  border:3px solid #3a2c18;border-radius:8px;padding:14px;
+  box-shadow:0 8px 40px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);
+  display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:1060px){.pedalboard{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.pedalboard{grid-template-columns:repeat(2,1fr)}}
+
+/* ── PEDAL ── */
+.pedal{position:relative;
+  background:linear-gradient(160deg,#2e2a26 0%,#1e1c18 60%,#181614 100%);
+  border-radius:5px;border:1px solid var(--metal-hi);
+  box-shadow:0 4px 14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 8px 12px;gap:7px;transition:box-shadow .15s;
+  animation:pedalIn .5s ease both}
+@keyframes pedalIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.pedal:nth-child(1){animation-delay:.05s}.pedal:nth-child(2){animation-delay:.1s}
+.pedal:nth-child(3){animation-delay:.15s}.pedal:nth-child(4){animation-delay:.2s}
+.pedal:nth-child(5){animation-delay:.25s}.pedal:nth-child(6){animation-delay:.3s}
+.pedal:nth-child(7){animation-delay:.35s}.pedal:nth-child(8){animation-delay:.4s}
+.pedal:nth-child(9){animation-delay:.45s}.pedal:nth-child(10){animation-delay:.5s}
+.pedal.active{box-shadow:0 4px 14px rgba(0,0,0,.7),0 0 18px -2px var(--accent-color,#f06020),inset 0 1px 0 rgba(255,255,255,.06)}
+.pedal::before{content:'';position:absolute;top:0;left:12px;right:12px;height:2px;
+  background:var(--accent-color,#f06020);border-radius:0 0 2px 2px;opacity:.35;transition:opacity .2s}
+.pedal.active::before{opacity:1}
+.pedal::after{content:'';position:absolute;inset:4px;border-radius:3px;pointer-events:none;
+  background:
+    radial-gradient(circle 3.5px at 6px 6px,#4a4540 60%,transparent 61%),
+    radial-gradient(circle 3.5px at calc(100% - 6px) 6px,#4a4540 60%,transparent 61%),
+    radial-gradient(circle 3.5px at 6px calc(100% - 6px),#4a4540 60%,transparent 61%),
+    radial-gradient(circle 3.5px at calc(100% - 6px) calc(100% - 6px),#4a4540 60%,transparent 61%)}
+.pedal-top{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 6px}
+.pedal-name{font-size:.68rem;font-weight:700;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase}
+.pedal.active .pedal-name{color:var(--text-val)}
+.footswitch-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.led{width:7px;height:7px;border-radius:50%;background:var(--led-off);box-shadow:0 0 0 1.5px #1a1814;transition:background .2s,box-shadow .2s}
+.pedal.active .led{background:var(--accent-color,#f06020);box-shadow:0 0 8px var(--accent-color,#f06020),0 0 2px #fff}
+.footswitch{width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 38% 38%,#5a5450 0%,#2a2820 50%,#1a1816 100%);
+  border:1.5px solid #4a4540;box-shadow:0 3px 6px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);
+  cursor:pointer;transition:transform .07s,box-shadow .1s;position:relative}
+.footswitch::after{content:'';position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.09);top:4px;left:5px}
+.footswitch:active,.pedal.active .footswitch{transform:translateY(1.5px);box-shadow:0 1px 3px rgba(0,0,0,.6),inset 0 1px 3px rgba(0,0,0,.4)}
+.knobs-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 5px;width:100%}
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;max-width:72px}
+.knob-label{font-size:.55rem;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;text-align:center}
+.knob-drag{cursor:ns-resize}
+.knob-svg{display:block;overflow:visible}
+.param-inputs{display:flex;flex-direction:column;gap:2px;width:100%}
+.input-row{display:flex;align-items:center;gap:2px;width:100%}
+.input-unit{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--text-dim);
+  white-space:nowrap;min-width:0;text-align:left;flex-shrink:0;max-width:28px;overflow:hidden;letter-spacing:.03em}
+.param-input{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text-val);
+  background:#131110;border:1px solid #252220;border-radius:2px;
+  padding:2px 3px;width:100%;min-width:0;text-align:right;outline:none;
+  cursor:text;user-select:text;transition:border-color .12s,background .12s;
+  -moz-appearance:textfield}
+.param-input::-webkit-outer-spin-button,.param-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.param-input:hover{border-color:#3a3530;background:#1a1814}
+.param-input:focus{border-color:var(--accent-color,#f06020);background:#1c1814}
+.param-input.pct{color:var(--text-dim)}
+.param-input.pct:focus{color:var(--text-val)}
+.param-select{font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;
+  letter-spacing:.08em;background:#1a1814;color:var(--text);border:1px solid #3a3530;
+  border-radius:3px;padding:3px 4px;cursor:pointer;text-transform:uppercase;outline:none;
+  appearance:none;width:100%;text-align:center}
+.param-select:focus{border-color:var(--accent-color,#f06020)}
+.sig-path{max-width:1400px;margin:0 auto 8px;padding:0 14px;
+  display:flex;align-items:center;overflow-x:auto;scrollbar-width:none}
+.sig-path::-webkit-scrollbar{display:none}
+.sig-node{font-family:'Share Tech Mono',monospace;font-size:.56rem;letter-spacing:.1em;
+  color:var(--text-dim);padding:3px 5px;border:1px solid #252220;border-radius:2px;
+  white-space:nowrap;transition:color .2s,border-color .2s;flex-shrink:0}
+.sig-node.on{color:var(--accent-color,#f06020);border-color:var(--accent-color,#f06020)}
+.sig-arrow{color:#2a2820;font-size:.68rem;flex-shrink:0;padding:0 1px}
+.sig-arrow.on{color:#4a4030}
+.presets-section{max-width:1400px;margin:16px auto 20px;padding:0 14px;
+  display:flex;flex-direction:column;gap:10px}
+.presets-bar{display:flex;gap:10px;flex-wrap:wrap}
+.preset-slot{flex:1;min-width:130px;background:linear-gradient(160deg,#252220 0%,#1a1814 100%);
+  border:1px solid #3a3530;border-radius:4px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.preset-name-row{display:flex;align-items:center;gap:6px}
+.preset-num{font-size:.72rem;font-weight:700;letter-spacing:.2em;color:var(--accent-yl);flex-shrink:0}
+.preset-name{background:transparent;border:none;border-bottom:1px solid #3a3530;
+  color:var(--text-val);font-family:'Barlow Condensed',sans-serif;
+  font-size:.88rem;font-weight:600;letter-spacing:.05em;
+  width:100%;padding:2px 0;outline:none;transition:border-color .15s;user-select:text}
+.preset-name:focus{border-bottom-color:var(--accent-yl)}
+.preset-btns{display:flex;gap:6px}
+.preset-btn{flex:1;padding:5px 0;border:1px solid #3a3530;border-radius:2px;
+  background:#1a1814;color:var(--text-dim);font-family:'Barlow Condensed',sans-serif;
+  font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  cursor:pointer;transition:all .12s}
+.preset-btn:hover{background:#2a2820;color:var(--text-val);border-color:#6a6050}
+.preset-btn.load:hover{border-color:var(--accent-yl);color:var(--accent-yl)}
+.preset-btn.save:hover{border-color:#30c080;color:#30c080}
+
+/* ═══ JAM TAB ════════════════════════════════════════════════════════════ */
+.jam-section{max-width:1400px;margin:0 auto;padding:16px 14px 24px}
+.jam-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  background:#141210;border:1px solid #2a2620;border-radius:5px;
+  padding:10px 14px;margin-bottom:14px}
+.jam-toolbar label{font-size:.68rem;letter-spacing:.15em;color:var(--text-dim);
+  text-transform:uppercase;white-space:nowrap}
+.jam-input{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--text-val);
+  background:#0e0e0e;border:1px solid #2a2620;border-radius:3px;
+  padding:5px 8px;outline:none;user-select:text;cursor:text;transition:border-color .12s;
+  flex:1;min-width:120px}
+.jam-input:focus{border-color:#f06020}
+.jam-input::placeholder{color:var(--text-dim);font-style:italic}
+.btn-sm{padding:5px 14px;font-size:.78rem}
+.audio-device-row{display:flex;align-items:center;gap:8px}
+.audio-sel{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--text-val);
+  background:#0e0e0e;border:1px solid #2a2620;border-radius:3px;
+  padding:4px 8px;outline:none;appearance:none;cursor:pointer;max-width:220px;
+  transition:border-color .12s}
+.audio-sel:focus{border-color:#30c080}
+.uac-dot{width:7px;height:7px;border-radius:50%;background:#2a2820;
+  box-shadow:0 0 0 1.5px #1a1814;transition:background .3s}
+.uac-dot.stream{background:#30c080;box-shadow:0 0 8px #30c08088}
+.jam-body{display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start}
+@media(max-width:900px){.jam-body{grid-template-columns:1fr}}
+
+/* ── YouTube Player ── */
+.player-card{background:linear-gradient(160deg,#1a1814 0%,#121010 100%);
+  border:1px solid #2a2620;border-radius:6px;overflow:hidden}
+.yt-wrap{position:relative;padding-bottom:56.25%;height:0;background:#000;
+  border-radius:4px 4px 0 0;overflow:hidden}
+.yt-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+#ytPlayerDiv{position:absolute;top:0;left:0;width:100%;height:100%}
+.player-controls{padding:12px 14px 14px;background:#0e0c0a}
+.ctrl-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px}
+.ctrl-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid #3a3530;
+  background:linear-gradient(160deg,#2e2a26 0%,#1a1814 100%);
+  color:var(--text-val);font-size:1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.5);transition:all .12s;font-family:inherit}
+.ctrl-btn:hover{border-color:#f06020;background:linear-gradient(160deg,#3a3028 0%,#252018 100%)}
+.ctrl-btn:active{transform:scale(.94)}
+.ctrl-btn.play-pause{width:44px;height:44px;font-size:1.2rem;border-color:#f06020}
+.seek-wrap{margin-bottom:8px}
+.seek-slider{width:100%;height:4px;-webkit-appearance:none;appearance:none;
+  background:linear-gradient(90deg,#f06020 var(--pct,0%),#252220 var(--pct,0%));
+  border-radius:2px;cursor:pointer;outline:none}
+.seek-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+  border-radius:50%;background:#f06020;box-shadow:0 0 6px #f0602088;cursor:pointer}
+.seek-slider::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;
+  background:#f06020;box-shadow:0 0 6px #f0602088;cursor:pointer}
+.time-row{display:flex;align-items:center;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:.72rem}
+.time-cur{color:#f06020}
+.time-rem{color:var(--text-val);text-align:center}
+.time-tot{color:var(--text-dim)}
+.now-playing{font-size:.72rem;letter-spacing:.05em;color:var(--text-dim);
+  padding:8px 14px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  border-top:1px solid #1e1c18}
+.no-video{padding:40px 20px;text-align:center;color:var(--text-dim);
+  font-size:.82rem;letter-spacing:.1em}
+.no-video .icon{font-size:2.5rem;display:block;margin-bottom:8px;opacity:.3}
+
+/* ── Search Results ── */
+.results-card{background:#141210;border:1px solid #2a2620;border-radius:6px;overflow:hidden}
+.results-header{padding:10px 12px;border-bottom:1px solid #1e1c18;
+  font-size:.65rem;letter-spacing:.3em;color:var(--text-dim);text-transform:uppercase}
+.results-list{max-height:460px;overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:#3a3530 transparent}
+.results-list::-webkit-scrollbar{width:4px}
+.results-list::-webkit-scrollbar-track{background:transparent}
+.results-list::-webkit-scrollbar-thumb{background:#3a3530;border-radius:2px}
+.result-item{display:flex;gap:10px;padding:10px 12px;cursor:pointer;
+  border-bottom:1px solid #1a1814;transition:background .12s;align-items:flex-start}
+.result-item:last-child{border-bottom:none}
+.result-item:hover{background:#1e1a14}
+.result-item.active{background:#1e1a14;border-left:2px solid #f06020}
+.result-thumb{width:80px;height:45px;object-fit:cover;border-radius:2px;flex-shrink:0;
+  background:#1a1814}
+.result-info{flex:1;min-width:0}
+.result-title{font-size:.75rem;font-weight:600;letter-spacing:.03em;color:var(--text-val);
+  line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;margin-bottom:3px}
+.result-meta{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--text-dim)}
+.results-empty{padding:32px 16px;text-align:center;color:var(--text-dim);
+  font-size:.75rem;letter-spacing:.1em}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#2a2820;border:1px solid #4a4038;border-radius:4px;
+  padding:10px 22px;font-size:.82rem;letter-spacing:.1em;color:var(--text-val);
+  box-shadow:0 8px 32px rgba(0,0,0,.6);transition:transform .25s cubic-bezier(.22,1,.36,1);z-index:10000}
+#toast.show{transform:translateX(-50%) translateY(0)}
+</style>
 </head>
 <body>
 
-<div id="modal-setup" class="modal-overlay hidden">
-    <div class="modal-box">
-        <h3 id="modal-title" style="color:var(--neon)">SYSTEM CHECK</h3>
-        <p id="modal-desc">Memeriksa integritas data...</p>
-        <div id="modal-inputs"></div>
-        <div id="modal-actions" style="margin-top:15px;"></div>
+<header>
+  <div class="logo">
+    <span class="logo-main">GuitarFX</span>
+    <span class="logo-sub">ESP32-S3 · USB</span>
+  </div>
+  <div class="header-right">
+    <div class="ble-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusLabel">DISCONNECTED</span>
     </div>
+    <button class="btn" id="btnConnect" onclick="toggleUSB()">CONNECT USB</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" onclick="switchTab('pedalboard',this)">
+    <span class="tab-icon">⬡</span> PEDALBOARD
+  </button>
+  <button class="tab" onclick="switchTab('jam',this)">
+    <span class="tab-icon">🎸</span> JAM
+  </button>
+</nav>
+
+<!-- ═══ PEDALBOARD TAB ════════════════════════════════════════════════════ -->
+<div class="section-content active" id="tab-pedalboard">
+  <div class="sig-path" id="sigPath"></div>
+  <div class="board-outer">
+    <div class="section-label">⬡ EFFECTS CHAIN</div>
+    <div class="pedalboard" id="pedalboard"></div>
+  </div>
+  <div class="presets-section">
+    <div class="section-label">⬡ PRESETS</div>
+    <div class="presets-bar" id="presetBar"></div>
+  </div>
 </div>
 
-<div id="modal-save-friend" class="modal-overlay hidden">
-    <div class="modal-box">
-        <h3>SIMPAN KONTAK</h3>
-        <p>Beri nama untuk teman ini:</p>
-        <input type="text" id="save-friend-name" placeholder="Nama Panggilan...">
-        <input type="hidden" id="save-friend-id">
-        <div style="display:flex; gap:5px; margin-top:10px;">
-            <button class="primary" onclick="confirmSaveContact()">SIMPAN</button>
-            <button onclick="closeModal('modal-save-friend')" style="flex:1; background:#333; color:white; border:none; cursor:pointer; margin-top:10px; border-radius:4px;">BATAL</button>
+<!-- ═══ JAM TAB ═══════════════════════════════════════════════════════════ -->
+<div class="section-content" id="tab-jam">
+  <div class="jam-section">
+
+    <!-- Toolbar -->
+    <div class="jam-toolbar">
+      <!-- YouTube search -->
+      <label>YT API KEY</label>
+      <input class="jam-input" id="apiKeyInput" type="password" placeholder="AIza…" style="max-width:200px" oninput="localStorage.setItem('ytKey',this.value)">
+      <input class="jam-input" id="searchInput" placeholder="Search YouTube…" onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="btn btn-sm" onclick="doSearch()">SEARCH</button>
+      <!-- Tab audio capture → stream PCM16 mono to ESP32 over CDC -->
+      <div class="audio-device-row">
+        <label>JAM AUDIO</label>
+        <button class="btn btn-sm" id="btnCapture" onclick="toggleCapture()">▶ CAPTURE TAB</button>
+        <div class="uac-dot" id="uacDot" title="Streaming to ESP32"></div>
+        <span id="streamStats" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text-dim)"></span>
+      </div>
+    </div>
+
+    <div class="jam-body">
+      <!-- Player column -->
+      <div>
+        <div class="section-label">⬡ PLAYER</div>
+        <div class="player-card">
+          <div class="yt-wrap">
+            <div id="ytPlayerDiv"></div>
+            <div class="no-video" id="noVideo" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <span class="icon">🎬</span>
+              SEARCH AND SELECT A VIDEO TO BEGIN
+            </div>
+          </div>
+          <!-- Custom controls -->
+          <div class="player-controls">
+            <div class="ctrl-row">
+              <button class="ctrl-btn" onclick="seekRel(-5)" title="Rewind 5s">⟨ 5</button>
+              <button class="ctrl-btn play-pause" id="btnPlayPause" onclick="togglePlay()">▶</button>
+              <button class="ctrl-btn" onclick="seekRel(10)" title="Forward 10s">10 ⟩</button>
+            </div>
+            <div class="seek-wrap">
+              <input class="seek-slider" id="seekSlider" type="range" min="0" max="100"
+                value="0" step="0.1"
+                oninput="onSeekInput(this)"
+                onchange="onSeekChange(this)"
+                style="--pct:0%">
+            </div>
+            <div class="time-row">
+              <span class="time-cur" id="timeCur">0:00</span>
+              <span class="time-rem" id="timeRem">–</span>
+              <span class="time-tot" id="timeTot">0:00</span>
+            </div>
+          </div>
+          <div class="now-playing" id="nowPlaying" style="display:none"></div>
         </div>
+      </div>
+
+      <!-- Results column -->
+      <div>
+        <div class="section-label">⬡ RESULTS</div>
+        <div class="results-card">
+          <div class="results-header" id="resultsHeader">NO RESULTS YET</div>
+          <div class="results-list" id="resultsList">
+            <div class="results-empty">Enter a search above to find songs to jam to</div>
+          </div>
+        </div>
+      </div>
     </div>
+
+  </div><!-- /jam-section -->
 </div>
 
-<div class="sidebar">
-    <div class="my-profile">
-        <h3 id="display-name">...</h3>
-        <small id="display-id" style="cursor:pointer; color:gray;" onclick="copyId()">Loading...</small>
-    </div>
+<div id="toast"></div>
 
-    <div id="section-unsaved" class="hidden">
-        <div class="list-header" style="color:#ff5555">⚠ Unsaved</div>
-        <div id="list-unsaved"></div>
-    </div>
-
-    <div class="list-header">Contacts</div>
-    <div id="list-saved" class="contact-list"></div>
-    
-    <div style="padding:10px;">
-        <input type="text" id="manual-add-id" placeholder="Tambah ID Manual...">
-        <button class="primary" style="margin-top:5px; font-size:0.8em;" onclick="addManual()">ADD CONTACT</button>
-    </div>
-</div>
-
-<div class="main">
-    <div style="padding:15px; background:rgba(0,0,0,0.5); border-bottom:1px solid #333; display:flex; justify-content:space-between;">
-        <span id="chat-header-name" style="font-weight:bold; color:var(--neon);">Pilih Kontak</span>
-        <span id="status-text" style="font-size:0.8em; color:gray;">Checking...</span>
-    </div>
-    <div id="chat-window"></div>
-    <div class="chat-input">
-        <input type="text" id="msg-input" placeholder="Ketik pesan..." disabled onkeypress="if(event.key==='Enter') sendMsg()">
-        <button class="primary" style="width:80px; margin-top:0;" onclick="sendMsg()">KIRIM</button>
-    </div>
-</div>
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    const API_KEY = "NEON-SECRET-KEY-2024";
-    const generateId = () => {
-        const c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let r=''; for(let i=0;i<8;i++) r+=c.charAt(Math.floor(Math.random()*c.length));
-        return r;
+/* ───────────────────────────────────────────────────────────
+   USB SERIAL (Web Serial API — replaces Web Bluetooth)
+   Protocol: 4-byte commands to device
+             62-byte state responses from device [0xFA][0xCB][60 bytes]
+─────────────────────────────────────────────────────────── */
+const RESP_MAGIC_0 = 0xFA, RESP_MAGIC_1 = 0xCB;
+const RESP_TOTAL   = 62;
+
+const CMD_TOGGLE   = 0x00, CMD_SET_PARAM = 0x01;
+const CMD_LOAD     = 0x02, CMD_SAVE      = 0x03, CMD_GET = 0x04;
+
+let serialPort = null, serialWriter = null, serialReader = null;
+let rxBuf = new Uint8Array(0);
+
+async function toggleUSB() {
+  if (serialPort) { await disconnectUSB(); return; }
+  if (!navigator.serial) {
+    toast('Web Serial not supported. Use Chrome or Edge on desktop.');
+    return;
+  }
+  setStatus('scan', 'PAIRING…');
+  try {
+    serialPort = await navigator.serial.requestPort({
+      filters: [{ usbVendorId: 0x303A }]  // Espressif — also try without filters if not found
+    });
+    await serialPort.open({ baudRate: 115200 });
+    setStatus('conn', 'CONNECTED');
+    document.getElementById('btnConnect').textContent = 'DISCONNECT';
+    document.getElementById('btnConnect').classList.add('connected');
+    // Start read loop
+    startSerialRead();
+    // Get initial state
+    await serialSend(new Uint8Array([CMD_GET, 0, 0, 0]));
+    toast('USB connected — state syncing…');
+  } catch(e) {
+    serialPort = null;
+    setStatus('off', 'DISCONNECTED');
+    if (e.name !== 'NotFoundError') toast('Serial error: ' + e.message);
+  }
+}
+
+async function disconnectUSB() {
+  try { if (serialReader) { await serialReader.cancel(); serialReader = null; } } catch(e){}
+  try { if (serialWriter) { serialWriter.releaseLock(); serialWriter = null; } } catch(e){}
+  try { if (serialPort)   { await serialPort.close(); } } catch(e){}
+  serialPort = null;
+  setStatus('off', 'DISCONNECTED');
+  document.getElementById('btnConnect').textContent = 'CONNECT USB';
+  document.getElementById('btnConnect').classList.remove('connected');
+  toast('USB disconnected');
+}
+
+async function startSerialRead() {
+  try {
+    serialReader = serialPort.readable.getReader();
+    while (true) {
+      const { value, done } = await serialReader.read();
+      if (done) break;
+      if (value) appendRxBuf(value);
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') console.warn('Serial read error:', e);
+    disconnectUSB();
+  }
+}
+
+function appendRxBuf(incoming) {
+  const nb = new Uint8Array(rxBuf.length + incoming.length);
+  nb.set(rxBuf); nb.set(incoming, rxBuf.length);
+  rxBuf = nb;
+  // Parse [0xFA][0xCB][60 bytes] packets
+  while (rxBuf.length >= RESP_TOTAL) {
+    const i0 = rxBuf.indexOf(RESP_MAGIC_0);
+    if (i0 === -1) { rxBuf = new Uint8Array(0); break; }
+    if (rxBuf.length < i0 + RESP_TOTAL) break;
+    if (rxBuf[i0 + 1] === RESP_MAGIC_1) {
+      applyStateBlob(rxBuf.slice(i0 + 2, i0 + RESP_TOTAL).buffer);
+      rxBuf = rxBuf.slice(i0 + RESP_TOTAL);
+    } else {
+      rxBuf = rxBuf.slice(i0 + 1);
+    }
+  }
+}
+
+async function serialSend(bytes) {
+  if (!serialPort || !serialPort.writable) return;
+  const writer = serialPort.writable.getWriter();
+  try { await writer.write(bytes); }
+  finally { writer.releaseLock(); }
+}
+
+function setStatus(type, label) {
+  document.getElementById('statusDot').className = 'status-dot' + (type==='conn'?' conn':type==='scan'?' scan':'');
+  document.getElementById('statusLabel').textContent = label;
+}
+
+/* ───────────────────────────────────────────────────────────
+   CONVERSION TABLE (same as previous version)
+─────────────────────────────────────────────────────────── */
+const CONV = {
+  pct:     { unit:'%',    realMin:0,    realMax:100,  realDec:0, toReal:p=>p,              fromReal:v=>v },
+  gainX:   { unit:'×',   realMin:1,    realMax:64,   realDec:1, toReal:p=>+(1+p*0.63).toFixed(1),      fromReal:v=>+(v-1)/0.63 },
+  distX:   { unit:'×',   realMin:10,   realMax:500,  realDec:0, toReal:p=>Math.round(10+p*4.9),         fromReal:v=>+(v-10)/4.9 },
+  fuzzX:   { unit:'×',   realMin:100,  realMax:1000, realDec:0, toReal:p=>Math.round(100+p*9),          fromReal:v=>+(v-100)/9 },
+  toneHz1: { unit:'Hz',  realMin:500,  realMax:5000, realDec:0, toReal:p=>Math.round(500+p*45),         fromReal:v=>+(v-500)/45 },
+  toneHz2: { unit:'Hz',  realMin:300,  realMax:3300, realDec:0, toReal:p=>Math.round(300+p*30),         fromReal:v=>+(v-300)/30 },
+  toneHz3: { unit:'Hz',  realMin:200,  realMax:2200, realDec:0, toReal:p=>Math.round(200+p*20),         fromReal:v=>+(v-200)/20 },
+  threshdB:{ unit:'dBFS',realMin:-60,  realMax:0,    realDec:1, toReal:p=>+(-60+p*0.6).toFixed(1),      fromReal:v=>+(v+60)/0.6 },
+  ratio:   { unit:':1',  realMin:1,    realMax:20,   realDec:1, toReal:p=>+(1+p*0.19).toFixed(1),       fromReal:v=>+(v-1)/0.19 },
+  atkMs:   { unit:'ms',  realMin:0.1,  realMax:50,   realDec:1, toReal:p=>+(50-p*0.499).toFixed(1),     fromReal:v=>+(50-v)/0.499 },
+  relMs:   { unit:'ms',  realMin:10,   realMax:500,  realDec:0, toReal:p=>Math.round(500-p*4.9),         fromReal:v=>+(500-v)/4.9 },
+  fdbkCoef:{ unit:'',    realMin:0,    realMax:0.95, realDec:2, toReal:p=>+(p*0.0095).toFixed(2),        fromReal:v=>+v/0.0095 },
+  revTime: { unit:'s',   realMin:0.3,  realMax:1.8,  realDec:2, toReal:p=>+(0.3+p*0.015).toFixed(2),    fromReal:v=>+(v-0.3)/0.015 },
+  dampHz:  { unit:'Hz',  realMin:200,  realMax:2000, realDec:0, toReal:p=>Math.round(2000-p*18),         fromReal:v=>+(2000-v)/18 },
+  rateHz5: { unit:'Hz',  realMin:0.1,  realMax:5,    realDec:2, toReal:p=>+(0.1+p*0.049).toFixed(2),    fromReal:v=>+(v-0.1)/0.049 },
+  rateHz1: { unit:'Hz',  realMin:0.05, realMax:1,    realDec:2, toReal:p=>+(0.05+p*0.0095).toFixed(2),  fromReal:v=>+(v-0.05)/0.0095 },
+  depthMs1:{ unit:'ms',  realMin:0,    realMax:24.9, realDec:1, toReal:p=>+(p*0.249).toFixed(1),         fromReal:v=>+v/0.249 },
+  depthMs2:{ unit:'ms',  realMin:0,    realMax:14.7, realDec:1, toReal:p=>+(p*0.147).toFixed(1),         fromReal:v=>+v/0.147 },
+  depth085:{ unit:'',    realMin:0,    realMax:0.85, realDec:2, toReal:p=>+(p*0.0085).toFixed(2),        fromReal:v=>+v/0.0085 },
+  fdbk087: { unit:'',    realMin:0,    realMax:0.87, realDec:2, toReal:p=>+(p*0.0087).toFixed(2),        fromReal:v=>+v/0.0087 },
+};
+
+/* ───────────────────────────────────────────────────────────
+   EFFECTS DEFINITION
+─────────────────────────────────────────────────────────── */
+const EFFECTS = [
+  {id:9,name:'Noise Gate',tag:'GATE',color:'#0090d0',params:[
+    {name:'Thresh',pid:0,def:20,conv:'threshdB'},{name:'Attack',pid:1,def:70,conv:'atkMs'},{name:'Rel',pid:2,def:30,conv:'relMs'}]},
+  {id:3,name:'Compressor',tag:'COMP',color:'#20a0d0',params:[
+    {name:'Thresh',pid:0,def:50,conv:'threshdB'},{name:'Ratio',pid:1,def:40,conv:'ratio'},{name:'Atk',pid:2,def:70,conv:'atkMs'},{name:'Rel',pid:3,def:30,conv:'relMs'}]},
+  {id:0,name:'Overdrive',tag:'OD',color:'#f06020',params:[
+    {name:'Drive',pid:0,def:50,conv:'gainX'},{name:'Tone',pid:1,def:60,conv:'toneHz1'},{name:'Level',pid:2,def:70,conv:'pct'}]},
+  {id:1,name:'Distortion',tag:'DIST',color:'#e03020',params:[
+    {name:'Gain',pid:0,def:60,conv:'distX'},{name:'Tone',pid:1,def:50,conv:'toneHz2'},{name:'Level',pid:2,def:70,conv:'pct'}]},
+  {id:2,name:'Fuzz',tag:'FUZZ',color:'#c02090',params:[
+    {name:'Fuzz',pid:0,def:70,conv:'fuzzX'},{name:'Tone',pid:1,def:40,conv:'toneHz3'},{name:'Level',pid:2,def:70,conv:'pct'}]},
+  {id:6,name:'Chorus',tag:'CHO',color:'#30c080',params:[
+    {name:'Rate',pid:0,def:30,conv:'rateHz5'},{name:'Depth',pid:1,def:50,conv:'depthMs1'},{name:'Mix',pid:2,def:50,conv:'pct'}]},
+  {id:8,name:'Flanger',tag:'FLA',color:'#20a060',params:[
+    {name:'Rate',pid:0,def:20,conv:'rateHz1'},{name:'Depth',pid:1,def:50,conv:'depthMs2'},{name:'Fdbk',pid:2,def:40,conv:'fdbk087'},{name:'Mix',pid:3,def:50,conv:'pct'}]},
+  {id:7,name:'Phaser',tag:'PHA',color:'#60d040',params:[
+    {name:'Rate',pid:0,def:25,conv:'rateHz5'},{name:'Depth',pid:1,def:60,conv:'depth085'},
+    {name:'Stages',pid:2,def:0,type:'select',options:['4-Stage','8-Stage']}]},
+  {id:4,name:'Delay 1s',tag:'DLY',color:'#a060f0',params:[
+    {name:'Fdbk',pid:0,def:40,conv:'fdbkCoef'},{name:'Mix',pid:1,def:40,conv:'pct'}]},
+  {id:5,name:'Reverb',tag:'REV',color:'#8040e0',params:[
+    {name:'Size',pid:0,def:60,conv:'revTime'},{name:'Damp',pid:1,def:50,conv:'dampHz'},{name:'Mix',pid:2,def:40,conv:'pct'},
+    {name:'Mode',pid:3,def:0,type:'select',options:['Room','Hall']}]},
+];
+
+/* ───────────────────────────────────────────────────────────
+   LOCAL STATE
+─────────────────────────────────────────────────────────── */
+const fxState = {};
+EFFECTS.forEach(fx => {
+  fxState[fx.id] = { enabled: false, p: [0,0,0,0,0] };
+  fx.params.forEach(pm => { fxState[fx.id].p[pm.pid] = pm.def ?? 0; });
+});
+
+/* ───────────────────────────────────────────────────────────
+   SVG KNOB
+─────────────────────────────────────────────────────────── */
+function makeKnob(pct, color) {
+  const R=18,cx=20,cy=20,minA=-135,maxA=135;
+  const angle=minA+(Math.min(100,Math.max(0,pct))/100)*(maxA-minA);
+  const rad=a=>a*Math.PI/180;
+  const pt=(r,a)=>({x:cx+r*Math.sin(rad(a)),y:cy-r*Math.cos(rad(a))});
+  const s=pt(R,minA),e=pt(R,maxA),a=pt(R,angle),d=pt(10.5,angle);
+  const large=(angle-minA)>180?1:0;
+  const uid=(Math.random()*1e8|0).toString(36);
+  return `<svg class="knob-svg" width="40" height="40" viewBox="0 0 40 40">
+  <defs><radialGradient id="kg${uid}" cx="40%" cy="35%" r="60%">
+    <stop offset="0%" stop-color="#3c3830"/><stop offset="100%" stop-color="#141210"/></radialGradient></defs>
+  <path d="M${s.x.toFixed(2)} ${s.y.toFixed(2)} A${R} ${R} 0 1 1 ${e.x.toFixed(2)} ${e.y.toFixed(2)}" fill="none" stroke="#222018" stroke-width="3" stroke-linecap="round"/>
+  <path d="M${s.x.toFixed(2)} ${s.y.toFixed(2)} A${R} ${R} 0 ${large} 1 ${a.x.toFixed(2)} ${a.y.toFixed(2)}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="${cx}" cy="${cy}" r="13" fill="#1e1c1a" stroke="#3a3530" stroke-width="1.5"/>
+  <circle cx="${cx}" cy="${cy}" r="13" fill="url(#kg${uid})" opacity="0.7"/>
+  <circle cx="${d.x.toFixed(2)}" cy="${d.y.toFixed(2)}" r="2.2" fill="${color}" opacity="0.95"/>
+  <circle cx="${d.x.toFixed(2)}" cy="${d.y.toFixed(2)}" r="1.1" fill="#fff" opacity="0.45"/>
+</svg>`;
+}
+
+const domId=(t,fxId,pid)=>`${t}_${fxId}_${pid}`;
+
+/* ───────────────────────────────────────────────────────────
+   BUILD PEDALS
+─────────────────────────────────────────────────────────── */
+function buildPedals() {
+  const board = document.getElementById('pedalboard');
+  board.innerHTML = '';
+  EFFECTS.forEach(fx => {
+    const div = document.createElement('div');
+    div.className = 'pedal' + (fxState[fx.id].enabled ? ' active' : '');
+    div.style.setProperty('--accent-color', fx.color);
+    div.dataset.fxId = fx.id;
+    const knobsHTML = fx.params.map(pm => {
+      if (pm.type === 'select') {
+        const opts = pm.options.map((o,i) => `<option value="${i}"${fxState[fx.id].p[pm.pid]===i?' selected':''}>${o}</option>`).join('');
+        return `<div class="knob-wrap"><div class="knob-label">${pm.name}</div>
+          <select class="param-select" onchange="onSelectChange(${fx.id},${pm.pid},+this.value)">${opts}</select></div>`;
+      }
+      const c=CONV[pm.conv], pct=fxState[fx.id].p[pm.pid], rVal=c.toReal(pct), isPct=pm.conv==='pct';
+      const rStep=c.realDec>0?Math.pow(10,-c.realDec):1;
+      return `<div class="knob-wrap">
+        <div class="knob-label">${pm.name}</div>
+        <div class="knob-drag" id="${domId('kw',fx.id,pm.pid)}"
+          onmousedown="startDrag(event,${fx.id},${pm.pid})"
+          ontouchstart="startDragTouch(event,${fx.id},${pm.pid})">${makeKnob(pct,fx.color)}</div>
+        <div class="param-inputs">
+          <div class="input-row">
+            <input class="param-input pct" type="number"
+              id="${domId('pi',fx.id,pm.pid)}" value="${pct}" min="0" max="100" step="1"
+              oninput="onPctInput(${fx.id},${pm.pid},this)"
+              onchange="onPctInput(${fx.id},${pm.pid},this)">
+            <span class="input-unit">%</span></div>
+          ${!isPct?`<div class="input-row">
+            <input class="param-input real" type="number"
+              id="${domId('ri',fx.id,pm.pid)}" value="${rVal}" min="${c.realMin}" max="${c.realMax}" step="${rStep}"
+              oninput="onRealInput(${fx.id},${pm.pid},this)"
+              onchange="onRealInput(${fx.id},${pm.pid},this)">
+            <span class="input-unit">${c.unit}</span></div>`:''}
+        </div></div>`;
+    }).join('');
+    div.innerHTML = `
+      <div class="pedal-top">
+        <span class="pedal-name">${fx.name}</span>
+        <div class="footswitch-wrap" onclick="toggleFx(${fx.id})">
+          <div class="led"></div><div class="footswitch"></div></div></div>
+      <div class="knobs-row">${knobsHTML}</div>`;
+    board.appendChild(div);
+  });
+  buildSigPath();
+}
+
+function buildSigPath() {
+  const bar = document.getElementById('sigPath');
+  bar.innerHTML = '';
+  const inN = document.createElement('span'); inN.className='sig-node'; inN.textContent='IN'; bar.appendChild(inN);
+  EFFECTS.forEach(fx => {
+    const arr=document.createElement('span');
+    arr.className='sig-arrow'+(fxState[fx.id].enabled?' on':''); arr.textContent='→'; arr.dataset.fxArrow=fx.id; bar.appendChild(arr);
+    const node=document.createElement('span');
+    node.className='sig-node'+(fxState[fx.id].enabled?' on':''); node.style.setProperty('--accent-color',fx.color);
+    node.textContent=fx.tag; node.dataset.fxNode=fx.id; bar.appendChild(node);
+  });
+  const arr2=document.createElement('span'); arr2.className='sig-arrow'; arr2.textContent='→'; bar.appendChild(arr2);
+  const outN=document.createElement('span'); outN.className='sig-node'; outN.textContent='OUT'; bar.appendChild(outN);
+}
+
+function buildPresets() {
+  const bar = document.getElementById('presetBar');
+  bar.innerHTML = '';
+  ['Clean Boost','Crunch','Lead','Ambient','Custom'].forEach((name,i) => {
+    const s=document.createElement('div'); s.className='preset-slot';
+    s.innerHTML=`<div class="preset-name-row"><span class="preset-num">P${i+1}</span>
+      <input class="preset-name" type="text" value="${name}" spellcheck="false"></div>
+      <div class="preset-btns">
+        <button class="preset-btn load" onclick="loadPreset(${i})">LOAD</button>
+        <button class="preset-btn save" onclick="savePreset(${i})">SAVE</button></div>`;
+    bar.appendChild(s);
+  });
+}
+
+/* ───────────────────────────────────────────────────────────
+   PARAM APPLY
+─────────────────────────────────────────────────────────── */
+function applyParam(fxId, pid, pct, source) {
+  pct = Math.min(100, Math.max(0, Math.round(pct)));
+  fxState[fxId].p[pid] = pct;
+  const kw=document.getElementById(domId('kw',fxId,pid));
+  if(kw){ const fx=EFFECTS.find(f=>f.id===fxId); kw.innerHTML=makeKnob(pct,fx.color); }
+  if(source!=='pct'){ const pi=document.getElementById(domId('pi',fxId,pid)); if(pi&&document.activeElement!==pi) pi.value=pct; }
+  if(source!=='real'){ const ri=document.getElementById(domId('ri',fxId,pid));
+    if(ri&&document.activeElement!==ri){ const fx=EFFECTS.find(f=>f.id===fxId); const pm=fx.params.find(p=>p.pid===pid);
+      if(pm&&pm.conv) ri.value=CONV[pm.conv].toReal(pct); }}
+  serialSend(new Uint8Array([CMD_SET_PARAM,fxId,pid,pct]));
+}
+function onPctInput(fxId,pid,el){ let v=parseInt(el.value,10); if(isNaN(v))return; applyParam(fxId,pid,Math.min(100,Math.max(0,v)),'pct'); }
+function onRealInput(fxId,pid,el){
+  const fx=EFFECTS.find(f=>f.id===fxId), pm=fx&&fx.params.find(p=>p.pid===pid);
+  if(!pm||!pm.conv)return;
+  const c=CONV[pm.conv]; let v=parseFloat(el.value); if(isNaN(v))return;
+  v=Math.min(c.realMax,Math.max(c.realMin,v));
+  applyParam(fxId,pid,Math.min(100,Math.max(0,Math.round(c.fromReal(v)))),'real');
+}
+function onSelectChange(fxId,pid,value){ fxState[fxId].p[pid]=value; serialSend(new Uint8Array([CMD_SET_PARAM,fxId,pid,value])); }
+
+/* ───────────────────────────────────────────────────────────
+   KNOB DRAG
+─────────────────────────────────────────────────────────── */
+let drag=null;
+function startDrag(e,fxId,pid){ e.preventDefault(); drag={fxId,pid,startY:e.clientY,startVal:fxState[fxId].p[pid]};
+  document.addEventListener('mousemove',onDrag); document.addEventListener('mouseup',endDrag); }
+function startDragTouch(e,fxId,pid){ const t=e.touches[0]; drag={fxId,pid,startY:t.clientY,startVal:fxState[fxId].p[pid]};
+  document.addEventListener('touchmove',onDragTouch,{passive:false}); document.addEventListener('touchend',endDragTouch); }
+function onDrag(e){ if(!drag)return; applyParam(drag.fxId,drag.pid,Math.round(Math.min(100,Math.max(0,drag.startVal+(drag.startY-e.clientY)))),'drag'); }
+function onDragTouch(e){ e.preventDefault(); if(!drag)return; applyParam(drag.fxId,drag.pid,Math.round(Math.min(100,Math.max(0,drag.startVal+(drag.startY-e.touches[0].clientY)))),'drag'); }
+function endDrag(){ drag=null; document.removeEventListener('mousemove',onDrag); document.removeEventListener('mouseup',endDrag); }
+function endDragTouch(){ drag=null; document.removeEventListener('touchmove',onDragTouch); document.removeEventListener('touchend',endDragTouch); }
+
+function toggleFx(fxId){
+  fxState[fxId].enabled=!fxState[fxId].enabled;
+  const on=fxState[fxId].enabled;
+  const pedal=document.querySelector(`[data-fx-id="${fxId}"]`); if(pedal) pedal.classList.toggle('active',on);
+  const node=document.querySelector(`[data-fx-node="${fxId}"]`); if(node) node.classList.toggle('on',on);
+  const arr=document.querySelector(`[data-fx-arrow="${fxId}"]`);  if(arr)  arr.classList.toggle('on',on);
+  serialSend(new Uint8Array([CMD_TOGGLE,fxId,0,0]));
+}
+
+function loadPreset(slot){ serialSend(new Uint8Array([CMD_LOAD,slot,0,0])); toast(`Preset ${slot+1} loaded`); }
+function savePreset(slot){ serialSend(new Uint8Array([CMD_SAVE,slot,0,0])); toast(`Preset ${slot+1} saved`); }
+
+function applyStateBlob(data){
+  const b=new Uint8Array(data); if(b.length<60)return;
+  for(let fxId=0;fxId<10;fxId++){
+    const base=fxId*6; fxState[fxId].enabled=b[base]!==0;
+    for(let p=0;p<5;p++) fxState[fxId].p[p]=b[base+1+p];
+  }
+  buildPedals(); toast('State synced from device');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB AUDIO CAPTURE → ESP32 CDC STREAM
+   ─────────────────────────────────────────────────────────
+   Uses getDisplayMedia() to capture the current browser tab's
+   audio. The captured PCM float32 is converted to PCM16 mono
+   and sent over WebSerial with packet framing:
+     [0xA0][LEN_HI][LEN_LO][PCM16-LE mono samples...]
+   44100 Hz mono → ~88 KB/s, well within CDC bandwidth.
+   The user hears audio through their normal speakers because
+   the AudioContext passes through to the destination node.
+═══════════════════════════════════════════════════════════ */
+const AUDIO_PKT_HEADER = 0xA0;
+const AUDIO_CHUNK_SAMPLES = 1024;  // ~23 ms per packet @ 44100 Hz
+
+let captureStream   = null;
+let captureCtx      = null;
+let captureProc     = null;
+let captureActive   = false;
+let bytesSentTotal  = 0;
+let lastStatsTime   = 0;
+
+async function toggleCapture() {
+  if (captureActive) { stopCapture(); return; }
+  if (!serialPort) { toast('Connect USB first before capturing audio'); return; }
+  await startCapture();
+}
+
+async function startCapture() {
+  try {
+    // Request tab audio — user must check "Share tab audio" in the dialog
+    captureStream = await navigator.mediaDevices.getDisplayMedia({
+      video: { width: 1, height: 1, frameRate: 1 },  // minimise video overhead
+      audio: {
+        channelCount: 1,
+        sampleRate: 44100,
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      }
+    });
+
+    // Drop video track immediately — we only need audio
+    captureStream.getVideoTracks().forEach(t => t.stop());
+
+    const audioTracks = captureStream.getAudioTracks();
+    if (!audioTracks.length) {
+      toast('No audio track captured. Make sure to check "Share tab audio".');
+      captureStream.getTracks().forEach(t => t.stop());
+      captureStream = null;
+      return;
+    }
+
+    captureCtx = new AudioContext({ sampleRate: 44100 });
+    const source = captureCtx.createMediaStreamSource(captureStream);
+
+    // ScriptProcessorNode: captures PCM float32 → convert to PCM16 → send to ESP32 only.
+    // Output buffer is intentionally left silent (all zeros).
+    // Audio comes out from GPIO18 (guitar + jam mix), not the system speaker.
+    captureProc = captureCtx.createScriptProcessor(AUDIO_CHUNK_SAMPLES, 1, 1);
+    captureProc.onaudioprocess = (e) => {
+      if (!serialPort) { stopCapture(); return; }
+      sendAudioChunk(e.inputBuffer.getChannelData(0));
+      // Output buffer stays zeroed → system speaker / Bluetooth = silent
     };
 
-    // State
-    let myId = localStorage.getItem('neon_id');
-    let myUsername = localStorage.getItem('neon_username');
-    let peer, activeConn, currentTargetId;
-    let contacts = [], unsaved = [];
+    // source → processor only. NOT connected to ctx.destination.
+    source.connect(captureProc);
 
-    // --- 1. SYSTEM STARTUP LOGIC (VALIDATION) ---
-    window.onload = async () => {
-        await startupCheck();
-    };
+    captureActive = true;
+    bytesSentTotal = 0;
+    lastStatsTime  = performance.now();
+    document.getElementById('btnCapture').textContent   = '■ STOP CAPTURE';
+    document.getElementById('uacDot').classList.add('stream');
+    // Mute YouTube player — audio now routes exclusively through ESP32 GPIO18
+    if (ytPlayer && ytReady) ytPlayer.mute();
+    toast('Tab audio capturing — streaming to ESP32 (speaker muted)');
 
-    async function startupCheck() {
-        const modal = document.getElementById('modal-setup');
-        const title = document.getElementById('modal-title');
-        const desc = document.getElementById('modal-desc');
-        const inputs = document.getElementById('modal-inputs');
-        const actions = document.getElementById('modal-actions');
-        
-        modal.classList.remove('hidden');
+    // Handle stream ending (user stops sharing)
+    captureStream.getAudioTracks()[0].addEventListener('ended', () => stopCapture());
 
-        try {
-            console.log("Mencoba menghubungi server di: " + location.origin + '/api/sync-check');
-            
-            const res = await fetch('/api/sync-check', {
-                method: 'POST',
-                headers: {'Content-Type':'application/json', 'x-api-key':API_KEY},
-                body: JSON.stringify({ id: myId, username: myUsername })
-            });
+  } catch(e) {
+    if (e.name !== 'NotAllowedError') toast('Capture error: ' + e.message);
+    captureStream = null;
+  }
+}
 
-            // LOGIKA DEBUGGING (Baru)
-            if (!res.ok) {
-                // Jika server membalas tapi error (misal 404 Not Found atau 500 Server Error)
-                throw new Error(`Server Error: ${res.status} (${res.statusText})`);
-            }
+function stopCapture() {
+  if (captureProc) { captureProc.disconnect(); captureProc = null; }
+  if (captureCtx)  { captureCtx.close();       captureCtx = null; }
+  if (captureStream) { captureStream.getTracks().forEach(t => t.stop()); captureStream = null; }
+  captureActive = false;
+  document.getElementById('btnCapture').textContent = '▶ CAPTURE TAB';
+  document.getElementById('uacDot').classList.remove('stream');
+  document.getElementById('streamStats').textContent = '';
+  // Restore speaker output when capture ends
+  if (ytPlayer && ytReady) ytPlayer.unMute();
+  toast('Tab audio capture stopped — speaker restored');
+}
 
-            const data = await res.json();
+function sendAudioChunk(floats) {
+  // Float32[-1..+1] → Int16[-32768..+32767]
+  const pcm16 = new Int16Array(floats.length);
+  for (let i = 0; i < floats.length; i++) {
+    const c = Math.max(-1, Math.min(1, floats[i]));
+    pcm16[i] = c < 0 ? (c * 32768) | 0 : (c * 32767) | 0;
+  }
+  const pcmBytes = new Uint8Array(pcm16.buffer);
+  const len = pcmBytes.length;                     // always AUDIO_CHUNK_SAMPLES × 2
+  const pkt = new Uint8Array(3 + len);
+  pkt[0] = AUDIO_PKT_HEADER;
+  pkt[1] = (len >> 8) & 0xFF;
+  pkt[2] =  len       & 0xFF;
+  pkt.set(pcmBytes, 3);
+  serialSend(pkt);
 
-            // LOGIKA VALIDASI (RULE 1-7)
-            switch(data.status) {
-                case 'RESET': 
-                    title.innerText = "SELAMAT DATANG";
-                    desc.innerText = "Buat identitas baru untuk memulai.";
-                    inputs.innerHTML = `<input id="new-name" placeholder="Nama Anda...">`;
-                    actions.innerHTML = `<button class="primary" onclick="completeSetup(true)">MULAI</button>`;
-                    break;
+  // Update throughput display every second
+  bytesSentTotal += pkt.length;
+  const now = performance.now();
+  if (now - lastStatsTime >= 1000) {
+    const kbps = ((bytesSentTotal / (now - lastStatsTime)) * 1000 / 1024).toFixed(1);
+    document.getElementById('streamStats').textContent = kbps + ' KB/s';
+    bytesSentTotal = 0;
+    lastStatsTime  = now;
+  }
+}
 
-                case 'SERVER_ID_LOST':
-                    title.innerText = "ERROR SINKRONISASI";
-                    desc.innerText = `ID Lokal (${myId}) tidak ditemukan di server.`;
-                    inputs.innerHTML = "";
-                    actions.innerHTML = `
-                        <button class="primary" onclick="completeSetup(true)">BUAT AKUN BARU (RESET)</button>
-                        <button class="primary" style="background:#555; margin-top:5px;" onclick="forceRegister()">PAKSA GUNAKAN ID INI</button>`;
-                    break;
+/* ═══════════════════════════════════════════════════════════
+   YOUTUBE SEARCH  (Data API v3)
+═══════════════════════════════════════════════════════════ */
+let searchResults = [];
+let activeVideoId = null;
 
-                case 'DB_NAME_LOST':
-                    title.innerText = "DATA SERVER HILANG";
-                    desc.innerText = `Server lupa namamu, tapi di HP ini ada (${data.localName}). Gunakan nama ini?`;
-                    actions.innerHTML = `<button class="primary" onclick="fixProfile('${data.localName}')">YA, GUNAKAN ${data.localName}</button>`;
-                    break;
-                
-                case 'LOCAL_NAME_LOST':
-                    title.innerText = "DATA LOKAL HILANG";
-                    desc.innerText = `Namamu hilang di HP ini, tapi Server mencatat: ${data.serverName}. Kembalikan?`;
-                    actions.innerHTML = `<button class="primary" onclick="restoreLocal('${data.serverName}')">YA, KEMBALIKAN</button>`;
-                    break;
+async function doSearch() {
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  const q = document.getElementById('searchInput').value.trim();
+  if (!apiKey) { toast('Enter your YouTube Data API v3 key'); return; }
+  if (!q) { toast('Enter a search term'); return; }
+  document.getElementById('resultsHeader').textContent = 'SEARCHING…';
+  document.getElementById('resultsList').innerHTML = '<div class="results-empty">Searching…</div>';
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=12&key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) { toast('YouTube API: ' + data.error.message); document.getElementById('resultsHeader').textContent = 'ERROR'; return; }
+    searchResults = data.items || [];
+    renderResults();
+  } catch(e) { toast('Search failed: ' + e.message); }
+}
 
-                case 'BOTH_NAME_LOST':
-                    title.innerText = "IDENTITAS TIDAK LENGKAP";
-                    desc.innerText = "ID valid, tapi nama pengguna hilang. Masukkan nama baru.";
-                    inputs.innerHTML = `<input id="new-name" placeholder="Nama Baru...">`;
-                    actions.innerHTML = `<button class="primary" onclick="completeSetup(false)">UPDATE</button>`;
-                    break;
+function renderResults() {
+  const list = document.getElementById('resultsList');
+  const hdr  = document.getElementById('resultsHeader');
+  if (!searchResults.length) { list.innerHTML='<div class="results-empty">No results found</div>'; hdr.textContent='NO RESULTS'; return; }
+  hdr.textContent = `${searchResults.length} RESULTS`;
+  list.innerHTML = searchResults.map((item,i) => {
+    const id    = item.id.videoId;
+    const title = item.snippet.title.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+    const thumb = item.snippet.thumbnails?.default?.url || '';
+    const ch    = item.snippet.channelTitle;
+    const active = id === activeVideoId ? ' active' : '';
+    return `<div class="result-item${active}" onclick="loadVideo('${id}','${title.replace(/'/g,'\\\'')}')" data-vid="${id}">
+      <img class="result-thumb" src="${thumb}" alt="" loading="lazy">
+      <div class="result-info">
+        <div class="result-title">${title}</div>
+        <div class="result-meta">${ch}</div>
+      </div></div>`;
+  }).join('');
+}
 
-                case 'OK':
-                    modal.classList.add('hidden');
-                    initApp();
-                    break;
-            }
-        } catch (e) {
-            console.error(e);
-            // Tampilkan error asli di layar agar kita bisa diagnose
-            title.innerText = "GAGAL TERHUBUNG";
-            title.style.color = "red";
-            desc.innerHTML = `Terjadi kesalahan saat menghubungi server.<br><br>
-                              <small style="color:yellow; font-family:monospace;">${e.message}</small><br><br>
-                              Tips: Pastikan server.js sudah direstart.`;
-            actions.innerHTML = `<button class="primary" onclick="location.reload()">COBA LAGI</button>`;
-        }
+/* ═══════════════════════════════════════════════════════════
+   YOUTUBE IFRAME PLAYER
+   ─────────────────────────────────────────────────────────
+   Player is initialised LAZILY on first loadVideo() call,
+   not immediately on onYouTubeIframeAPIReady — that way the
+   container is guaranteed visible and has real dimensions.
+═══════════════════════════════════════════════════════════ */
+let ytPlayer      = null;
+let ytReady       = false;
+let ytApiReady    = false;   // IFrame API script has loaded
+let ytTimerID     = null;
+let pendingVideoId = null;
+let isSeeking     = false;
+
+// Called by YouTube IFrame API when the script finishes loading.
+// We only set a flag here — actual player creation happens in createPlayer().
+function onYouTubeIframeAPIReady() {
+  ytApiReady = true;
+  // If a video was already requested before the API finished loading, create now
+  if (pendingVideoId) createPlayer(pendingVideoId);
+}
+
+function createPlayer(videoId) {
+  // Guard: only create once
+  if (ytPlayer) {
+    ytPlayer.loadVideoById(videoId);
+    return;
+  }
+
+  // Hide placeholder, ensure container is visible
+  const noVid = document.getElementById('noVideo');
+  if (noVid) noVid.style.display = 'none';
+
+  // Build safe origin (file:// → omit; http/https → include)
+  const originOk = location.protocol.startsWith('http');
+  const playerVars = {
+    autoplay:        1,
+    controls:        1,   // show native controls as fallback
+    disablekb:       0,
+    fs:              0,
+    modestbranding:  1,
+    rel:             0,
+    iv_load_policy:  3,
+    playsinline:     1,
+  };
+  if (originOk) playerVars.origin = location.origin;
+
+  ytPlayer = new YT.Player('ytPlayerDiv', {
+    videoId,
+    height: '100%',
+    width:  '100%',
+    playerVars,
+    events: {
+      onReady: (e) => {
+        ytReady = true;
+        e.target.playVideo();
+        startProgressTimer();
+      },
+      onStateChange: onYTStateChange,
+      onError: (e) => toast('YouTube player error code: ' + e.data),
     }
+  });
+}
 
-    // --- HELPER UNTUK PERBAIKAN AKUN ---
-    async function completeSetup(isReset) {
-        const name = document.getElementById('new-name').value.trim();
-        if(!name) return alert("Wajib isi nama!");
-        
-        if(isReset) {
-            myId = generateId(); // Generate Baru
-            localStorage.setItem('neon_id', myId);
-        }
-        await updateProfileServer(myId, name);
-    }
+function loadVideo(videoId, title) {
+  activeVideoId = videoId;
+  document.querySelectorAll('.result-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.vid === videoId);
+  });
+  const np = document.getElementById('nowPlaying');
+  np.style.display = 'block'; np.textContent = title;
 
-    async function forceRegister() {
-        // Kasus ID ada di local, tapi server lupa. Kita paksa register ulang ID lama.
-        const name = prompt("Masukkan nama anda untuk ID ini:");
-        if(name) await updateProfileServer(myId, name);
-    }
+  if (!ytApiReady) {
+    // API script still loading — store and wait
+    pendingVideoId = videoId;
+    return;
+  }
+  if (!ytPlayer || !ytReady) {
+    // API ready but player not yet created — create it now with this video
+    createPlayer(videoId);
+    return;
+  }
+  // Player already exists — just swap the video
+  ytPlayer.loadVideoById(videoId);
+}
 
-    async function fixProfile(name) {
-        await updateProfileServer(myId, name);
-    }
+function onYTStateChange(e) {
+  const btn = document.getElementById('btnPlayPause');
+  if (e.data === YT.PlayerState.PLAYING) {
+    btn.textContent = '⏸';
+  } else if (e.data === YT.PlayerState.ENDED) {
+    btn.textContent = '▶'; resetProgress();
+  } else {
+    btn.textContent = '▶';
+  }
+}
 
-    async function restoreLocal(serverName) {
-        localStorage.setItem('neon_username', serverName);
-        location.reload();
-    }
+function togglePlay() {
+  if (!ytPlayer || !ytReady) return;
+  const st = ytPlayer.getPlayerState();
+  if (st === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
+  else ytPlayer.playVideo();
+}
 
-    async function updateProfileServer(id, name) {
-        localStorage.setItem('neon_username', name);
-        myUsername = name;
-        
-        await fetch('/api/update-profile', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json', 'x-api-key':API_KEY},
-            body: JSON.stringify({ id: id, username: name })
-        });
-        
-        document.getElementById('modal-setup').classList.add('hidden');
-        initApp();
-    }
+function seekRel(deltaSec) {
+  if (!ytPlayer || !ytReady) return;
+  const cur = ytPlayer.getCurrentTime() || 0;
+  ytPlayer.seekTo(Math.max(0, cur + deltaSec), true);
+}
 
-    // --- 2. MAIN APP ---
-    function initApp() {
-        document.getElementById('display-name').innerText = myUsername;
-        document.getElementById('display-id').innerText = "ID: " + myId;
-        document.getElementById('msg-input').disabled = false;
+function onSeekInput(el) {
+  isSeeking = true;
+  const dur = ytPlayer && ytReady ? ytPlayer.getDuration() : 0;
+  const cur = (el.value / 100) * dur;
+  document.getElementById('timeCur').textContent = fmtTime(cur);
+  document.getElementById('timeRem').textContent = '-' + fmtTime(Math.max(0, dur - cur));
+  el.style.setProperty('--pct', el.value + '%');
+}
+function onSeekChange(el) {
+  if (!ytPlayer || !ytReady) { isSeeking = false; return; }
+  const dur = ytPlayer.getDuration() || 0;
+  ytPlayer.seekTo((el.value / 100) * dur, true);
+  isSeeking = false;
+}
 
-        const isSecure = location.protocol === 'https:';
-        peer = new Peer(myId, {
-            host: location.hostname,
-            port: isSecure ? 443 : (location.port || 80),
-            path: '/peerjs/myapp',
-            secure: isSecure
-        });
+function startProgressTimer() {
+  if (ytTimerID) clearInterval(ytTimerID);
+  ytTimerID = setInterval(() => {
+    if (!ytPlayer || !ytReady || isSeeking) return;
+    try {
+      const cur = ytPlayer.getCurrentTime() || 0;
+      const dur = ytPlayer.getDuration()    || 0;
+      const pct = dur > 0 ? (cur / dur * 100) : 0;
+      document.getElementById('timeCur').textContent = fmtTime(cur);
+      document.getElementById('timeRem').textContent = dur > 0 ? '-' + fmtTime(dur - cur) : '–';
+      document.getElementById('timeTot').textContent = fmtTime(dur);
+      const sl = document.getElementById('seekSlider');
+      sl.value = pct.toFixed(1);
+      sl.style.setProperty('--pct', pct.toFixed(1) + '%');
+    } catch(e) {}
+  }, 500);
+}
 
-        peer.on('open', () => {
-            document.getElementById('status-text').innerText = "🟢 Online";
-            syncData();
-        });
+function resetProgress() {
+  document.getElementById('timeCur').textContent = '0:00';
+  document.getElementById('timeRem').textContent = '–';
+  const sl = document.getElementById('seekSlider'); sl.value = 0; sl.style.setProperty('--pct','0%');
+}
 
-        peer.on('connection', (conn) => {
-            conn.on('data', (data) => {
-                // Saat terima pesan, Sync Data ulang agar pesan masuk ke history UI
-                // Karena server sudah simpan, kita tinggal tarik data baru
-                setTimeout(syncData, 500); 
-                if(data.sender !== currentTargetId) { /* Notif suara bisa disini */ }
-            });
-        });
-    }
+function fmtTime(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
 
-    async function syncData() {
-        const res = await fetch(`/api/data/${myId}`);
-        const data = await res.json();
-        contacts = data.saved || [];
-        unsaved = data.unsaved || [];
-        renderLists();
-        
-        // Refresh chat window kalau sedang buka chat orang ini
-        if(currentTargetId) {
-            const currentContact = contacts.find(c => c.id === currentTargetId) || unsaved.find(u => u.id === currentTargetId);
-            if(currentContact && currentContact.messages) renderChatWindow(currentContact.messages);
-        }
-    }
+/* ═══════════════════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════════════════ */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
 
-    function renderLists() {
-        const savedList = document.getElementById('list-saved');
-        savedList.innerHTML = "";
-        contacts.forEach(c => {
-            const div = document.createElement('div');
-            div.className = `contact-item ${currentTargetId === c.id ? 'active' : ''}`;
-            div.innerHTML = `<div><b>${c.name}</b><br><small style='font-size:0.7em'>${c.id}</small></div>`;
-            div.onclick = () => openChat(c.id, c.name, true);
-            savedList.appendChild(div);
-        });
+}
 
-        const unsavedList = document.getElementById('list-unsaved');
-        const unsavedSec = document.getElementById('section-unsaved');
-        unsavedList.innerHTML = "";
-        
-        if(unsaved.length > 0) {
-            unsavedSec.classList.remove('hidden');
-            unsaved.forEach(u => {
-                const div = document.createElement('div');
-                div.className = "contact-item unsaved-item";
-                div.innerHTML = `
-                    <div onclick="openChat('${u.id}', '~[${u.original_username}]', false)">
-                        <span style="color:#ffaaaa">~[${u.original_username}]</span><br><small>${u.id}</small>
-                    </div>
-                    <div>
-                        <button class="btn-save" onclick="promptSave('${u.id}')">SAVE</button>
-                        <button class="btn-ignore" onclick="ignoreUser('${u.id}')">X</button>
-                    </div>`;
-                unsavedList.appendChild(div);
-            });
-        } else {
-            unsavedSec.classList.add('hidden');
-        }
-    }
+/* ───────────────────────────────────────────────────────────
+   TOAST
+─────────────────────────────────────────────────────────── */
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
 
-    function openChat(id, name, isSaved) {
-        currentTargetId = id;
-        document.getElementById('chat-header-name').innerText = name;
-        
-        // Load History
-        const list = isSaved ? contacts : unsaved;
-        const user = list.find(u => u.id === id);
-        renderChatWindow(user ? user.messages : []);
+/* ───────────────────────────────────────────────────────────
+   INIT
+─────────────────────────────────────────────────────────── */
+buildPedals();
+buildPresets();
+// Restore saved API key
+const savedKey = localStorage.getItem('ytKey'); if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
 
-        // PeerJS Connection (Untuk kirim real-time)
-        if(activeConn) activeConn.close();
-        activeConn = peer.connect(id, { metadata: { username: myUsername } });
-        activeConn.on('open', () => document.getElementById('status-text').innerText = "🔵 Connected");
-    }
+// Keyboard shortcuts (when not focused on an input)
+window.addEventListener('keydown', e => {
+  if (['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  const n = parseInt(e.key);
+  if (!isNaN(n)) { const idx=n===0?9:n-1; if(idx<EFFECTS.length) toggleFx(EFFECTS[idx].id); }
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  if (e.code === 'ArrowLeft') seekRel(-5);
+  if (e.code === 'ArrowRight') seekRel(10);
+});
 
-    function renderChatWindow(msgs) {
-        const win = document.getElementById('chat-window');
-        win.innerHTML = "";
-        if(!msgs) return;
 
-        msgs.forEach(m => {
-            const div = document.createElement('div');
-            // 'me' = You, 'them' = (S)he
-            div.className = `msg ${m.type}`; 
-            div.innerText = m.text;
-            win.appendChild(div);
-        });
-        win.scrollTop = win.scrollHeight;
-    }
-
-    async function sendMsg() {
-        const input = document.getElementById('msg-input');
-        const msg = input.value;
-        if(!msg || !currentTargetId) return;
-
-        // 1. Kirim via PeerJS (Realtime UI lawan)
-        if(activeConn && activeConn.open) {
-            activeConn.send({ sender: myId, msg: msg });
-        }
-
-        // 2. Simpan ke Server (Database)
-        await fetch('/api/store-message', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json', 'x-api-key':API_KEY},
-            body: JSON.stringify({ 
-                senderId: myId, 
-                receiverId: currentTargetId, 
-                msg: msg, 
-                senderName: myUsername 
-            })
-        });
-
-        input.value = "";
-        syncData(); // Refresh UI sendiri
-    }
-
-    // --- ACTIONS ---
-    function promptSave(id) {
-        document.getElementById('save-friend-id').value = id;
-        document.getElementById('save-friend-name').value = "";
-        document.getElementById('modal-save-friend').classList.remove('hidden');
-    }
-
-    async function confirmSaveContact() {
-        const id = document.getElementById('save-friend-id').value;
-        const name = document.getElementById('save-friend-name').value.trim();
-        if(!name) return;
-
-        await fetch('/api/save-contact', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json', 'x-api-key':API_KEY},
-            body: JSON.stringify({ myId: myId, friendId: id, customName: name })
-        });
-        closeModal('modal-save-friend');
-        syncData();
-    }
-
-    async function ignoreUser(id) {
-        if(!confirm("Hapus chat ini?")) return;
-        await fetch('/api/ignore-contact', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json', 'x-api-key':API_KEY},
-            body: JSON.stringify({ myId: myId, targetId: id })
-        });
-        syncData();
-    }
-
-    async function addManual() {
-        const id = document.getElementById('manual-add-id').value.trim();
-        if(id) promptSave(id);
-    }
-
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    function copyId() { navigator.clipboard.writeText(myId); alert("ID Copied"); }
 </script>
-
 </body>
 </html>
