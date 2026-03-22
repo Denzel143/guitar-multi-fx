@@ -149,7 +149,6 @@ header{
   transition:border-color .12s;flex:1;min-width:0}
 .search-input:focus{border-color:#f06020}
 .search-input::placeholder{color:var(--text-dim);font-style:italic}
-.api-key-input{max-width:130px;font-size:.65rem;flex:0 0 auto}
 .capture-row{display:flex;align-items:center;gap:8px}
 .uac-dot{width:6px;height:6px;border-radius:50%;background:#2a2820;
   box-shadow:0 0 0 1.5px #1a1814;transition:background .3s;flex-shrink:0}
@@ -381,9 +380,7 @@ header{
     <!-- Search bar — fixed -->
     <div class="search-bar">
       <div class="search-row">
-        <input class="search-input api-key-input" id="apiKeyInput" type="password"
-          placeholder="YT API Key…" oninput="localStorage.setItem('ytKey',this.value)">
-        <input class="search-input" id="searchInput"
+<input class="search-input" id="searchInput"
           placeholder="Search YouTube to jam…"
           onkeydown="if(event.key==='Enter')doSearch()">
         <button class="btn btn-sm" onclick="doSearch()">GO</button>
@@ -487,7 +484,7 @@ const CONV={
   ratio:   {unit:':1', realMin:1,   realMax:20,  realDec:1,toReal:p=>+(1+p*0.19).toFixed(1),       fromReal:v=>+(v-1)/0.19},
   atkMs:   {unit:'ms', realMin:0.1, realMax:50,  realDec:1,toReal:p=>+(50-p*0.499).toFixed(1),     fromReal:v=>+(50-v)/0.499},
   relMs:   {unit:'ms', realMin:10,  realMax:500, realDec:0,toReal:p=>Math.round(500-p*4.9),         fromReal:v=>+(500-v)/4.9},
-  fdbkCoef:{unit:'',   realMin:0,   realMax:0.95,realDec:2,toReal:p=>+(p*0.0095).toFixed(2),        fromReal:v=>+v/0.0095},
+  fdbkCoef:{unit:'',   realMin:0,   realMax:1.0, realDec:2,toReal:p=>+(p*0.01).toFixed(2),           fromReal:v=>Math.round(v*100)},
   revTime: {unit:'s',  realMin:0.3, realMax:1.8, realDec:2,toReal:p=>+(0.3+p*0.015).toFixed(2),    fromReal:v=>+(v-0.3)/0.015},
   dampHz:  {unit:'Hz', realMin:200, realMax:2000,realDec:0,toReal:p=>Math.round(2000-p*18),         fromReal:v=>+(2000-v)/18},
   rateHz5: {unit:'Hz', realMin:0.1, realMax:5,   realDec:2,toReal:p=>+(0.1+p*0.049).toFixed(2),    fromReal:v=>+(v-0.1)/0.049},
@@ -643,13 +640,19 @@ function applyParam(fxId,pid,pct,source){
       if(pm&&pm.conv)ri.value=CONV[pm.conv].toReal(pct);}}
   serialSend(new Uint8Array([CMD_SET_PARAM,fxId,pid,pct]));
 }
-function onPctInput(fxId,pid,el){let v=parseInt(el.value,10);if(isNaN(v))return;applyParam(fxId,pid,Math.min(100,Math.max(0,v)),'pct');}
+function onPctInput(fxId,pid,el){
+  let v=parseInt(el.value,10);if(isNaN(v))return;
+  const clamped=Math.min(100,Math.max(0,v));
+  if(clamped!==v) el.value=clamped;   // snap field back to limit
+  applyParam(fxId,pid,clamped,'pct');
+}
 function onRealInput(fxId,pid,el){
   const fx=EFFECTS.find(f=>f.id===fxId),pm=fx&&fx.params.find(p=>p.pid===pid);
   if(!pm||!pm.conv)return;
   const c=CONV[pm.conv];let v=parseFloat(el.value);if(isNaN(v))return;
-  v=Math.min(c.realMax,Math.max(c.realMin,v));
-  applyParam(fxId,pid,Math.min(100,Math.max(0,Math.round(c.fromReal(v)))),'real');
+  const clamped=Math.min(c.realMax,Math.max(c.realMin,v));
+  if(clamped!==v) el.value=c.realDec>0?clamped.toFixed(c.realDec):clamped; // snap back
+  applyParam(fxId,pid,Math.min(100,Math.max(0,Math.round(c.fromReal(clamped)))),'real');
 }
 function onSelectChange(fxId,pid,value){fxState[fxId].p[pid]=value;serialSend(new Uint8Array([CMD_SET_PARAM,fxId,pid,value]));}
 
@@ -748,7 +751,7 @@ function sendAudioChunk(floats){
 /* ─── YOUTUBE SEARCH ────────────────────────────────────── */
 let searchResults=[],activeVideoId=null;
 async function doSearch(){
-  const apiKey=document.getElementById('apiKeyInput').value.trim();
+  const apiKey='AIzaSyBcYDl7TWnwhPV6DbAZN78xT8-rfuRgPA8';
   const q=document.getElementById('searchInput').value.trim();
   if(!apiKey){toast('Enter your YouTube API key');return;}
   if(!q){toast('Enter a search term');return;}
@@ -864,7 +867,6 @@ function toast(msg){
 /* ─── INIT ──────────────────────────────────────────────── */
 buildPedals();
 buildPresets();
-const savedKey=localStorage.getItem('ytKey');if(savedKey)document.getElementById('apiKeyInput').value=savedKey;
 
 window.addEventListener('keydown',e=>{
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
