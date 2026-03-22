@@ -8,38 +8,46 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0e0e0e;--board:#1a1410;--metal-hi:#3a3530;
+  --bg:#0e0e0e;--metal-hi:#3a3530;
   --text:#c8c0b4;--text-dim:#6a6460;--text-val:#f0e8d0;
-  --led-off:#2a1810;--accent-yl:#e0c040;--screw:#4a4540;
+  --led-off:#2a1810;--accent-yl:#e0c040;
+  --hdr:52px;  /* header height — used in calc() */
 }
-html{font-size:14px}
-body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;
-  min-height:100vh;overflow-x:hidden;cursor:default;user-select:none}
+
+/* ── BASE: no body scroll, layout fills viewport ─────────── */
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);
+  font-family:'Barlow Condensed',sans-serif;cursor:default;user-select:none}
 body::before{content:'';position:fixed;inset:0;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size:200px 200px;pointer-events:none;z-index:9999;opacity:.4}
+  background-size:200px;pointer-events:none;z-index:9999;opacity:.4}
 
-/* ── HEADER ── */
-header{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 24px;background:linear-gradient(180deg,#1a1814 0%,#121010 100%);
-  border-bottom:1px solid #3a3228;position:sticky;top:0;z-index:100;
-  box-shadow:0 4px 24px rgba(0,0,0,.7);gap:16px;flex-wrap:wrap}
+/* ── HEADER ─────────────────────────────────────────────── */
+header{
+  height:var(--hdr);display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  background:linear-gradient(180deg,#1a1814 0%,#121010 100%);
+  border-bottom:1px solid #3a3228;
+  box-shadow:0 4px 24px rgba(0,0,0,.7);
+  position:relative;z-index:100;flex-shrink:0;gap:12px}
 .logo{display:flex;align-items:baseline;gap:8px}
-.logo-main{font-size:1.9rem;font-weight:900;letter-spacing:.08em;color:var(--text-val);
+.logo-main{font-size:1.7rem;font-weight:900;letter-spacing:.08em;color:var(--text-val);
   text-shadow:0 0 24px rgba(240,180,60,.18)}
-.logo-sub{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--text-dim);
-  letter-spacing:.2em}
-.header-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.ble-status{display:flex;align-items:center;gap:7px;font-family:'Share Tech Mono',monospace;
-  font-size:.75rem;color:var(--text-dim)}
+.logo-sub{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--text-dim);letter-spacing:.2em}
+.header-right{display:flex;align-items:center;gap:12px}
+.ble-status{display:flex;align-items:center;gap:7px;
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--text-dim)}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--led-off);
   box-shadow:0 0 0 2px #1a1814;transition:background .3s,box-shadow .3s}
 .status-dot.conn{background:#40f080;box-shadow:0 0 10px #40f08088,0 0 3px #fff}
-.status-dot.scan{background:var(--accent-yl);box-shadow:0 0 10px #e0c04088;animation:pulse .8s ease-in-out infinite}
+.status-dot.scan{background:var(--accent-yl);box-shadow:0 0 10px #e0c04088;
+  animation:pulse .8s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-#statusLabel{min-width:88px}
-.btn{padding:7px 18px;border:none;border-radius:3px;cursor:pointer;
-  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;
+#statusLabel{min-width:86px}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+.btn{padding:6px 16px;border:none;border-radius:3px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.85rem;
   letter-spacing:.12em;text-transform:uppercase;
   background:linear-gradient(180deg,#3a3028 0%,#1e1a14 100%);
   color:var(--text-val);border:1px solid #4a4038;
@@ -48,83 +56,213 @@ header{display:flex;align-items:center;justify-content:space-between;
 .btn:hover{background:linear-gradient(180deg,#504540 0%,#2e2820 100%);color:#fff}
 .btn:active{transform:translateY(1px)}
 .btn.connected{border-color:#40f08060;color:#80f0a0}
+.btn-sm{padding:4px 12px;font-size:.75rem}
 
-/* ── TABS ── */
-.tabs{display:flex;gap:0;border-bottom:2px solid #252220;
-  background:#0e0e0e;padding:0 20px;position:sticky;top:57px;z-index:99}
-.tab{padding:10px 24px;font-size:.9rem;font-weight:700;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--text-dim);background:none;border:none;
-  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
-  transition:color .15s,border-color .15s;font-family:'Barlow Condensed',sans-serif}
-.tab:hover{color:var(--text-val)}
-.tab.active{color:var(--text-val);border-bottom-color:#f06020}
-.tab-icon{margin-right:6px;opacity:.7}
-.section-content{display:none}
-.section-content.active{display:block}
+/* ══════════════════════════════════════════════════════════
+   MAIN TWO-COLUMN LAYOUT
+   Left  : pedalboard (scrollable)
+   Right : YT player + controls + search bar (fixed) + results (scrollable)
+══════════════════════════════════════════════════════════ */
+.app-body{
+  display:grid;
+  grid-template-columns:1fr 360px;
+  height:calc(100vh - var(--hdr));
+  overflow:hidden}
 
-/* ── SECTION WRAPPER ── */
-.section-label{font-size:.68rem;letter-spacing:.35em;color:var(--text-dim);
-  text-transform:uppercase;margin-bottom:10px}
-.board-outer{margin:18px auto;max-width:1400px;padding:0 14px}
+/* ── LEFT COLUMN ─────────────────────────────────────────── */
+.left-col{
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:12px 14px 20px;
+  scrollbar-width:thin;
+  scrollbar-color:#3a3530 transparent}
+.left-col::-webkit-scrollbar{width:4px}
+.left-col::-webkit-scrollbar-thumb{background:#3a3530;border-radius:2px}
 
-/* ── PEDALBOARD ── */
+/* ── RIGHT COLUMN ────────────────────────────────────────── */
+.right-col{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border-left:1px solid #252220;
+  background:#0c0b0a}
+
+/* YouTube player — fixed 16:9, never scrolls */
+.yt-wrap{
+  position:relative;
+  width:100%;
+  padding-bottom:56.25%;   /* 16:9 */
+  background:#000;
+  flex-shrink:0}
+.yt-wrap iframe,
+#ytPlayerDiv{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+.no-video{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  color:var(--text-dim);font-size:.78rem;letter-spacing:.12em;text-align:center;gap:6px}
+.no-video-icon{font-size:2rem;opacity:.25}
+.now-playing{
+  padding:5px 12px;font-size:.68rem;letter-spacing:.04em;color:var(--text-dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:#0a0908;border-bottom:1px solid #1a1814;flex-shrink:0}
+
+/* Player controls — fixed, never scrolls */
+.player-controls{
+  padding:10px 14px 8px;background:#0e0c0a;
+  border-bottom:1px solid #1a1814;flex-shrink:0}
+.ctrl-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}
+.ctrl-btn{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid #3a3530;
+  background:linear-gradient(160deg,#2e2a26 0%,#1a1814 100%);
+  color:var(--text-val);font-size:.95rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.5);transition:all .12s;
+  font-family:inherit;flex-shrink:0}
+.ctrl-btn:hover{border-color:#f06020;background:linear-gradient(160deg,#3a3028,#252018)}
+.ctrl-btn:active{transform:scale(.93)}
+.ctrl-btn.play-pause{width:42px;height:42px;font-size:1.1rem;border-color:#f06020}
+.seek-wrap{margin-bottom:6px}
+.seek-slider{
+  width:100%;height:4px;-webkit-appearance:none;appearance:none;
+  background:linear-gradient(90deg,#f06020 var(--pct,0%),#252220 var(--pct,0%));
+  border-radius:2px;cursor:pointer;outline:none}
+.seek-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+  border-radius:50%;background:#f06020;box-shadow:0 0 6px #f0602088;cursor:pointer}
+.seek-slider::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;
+  background:#f06020;cursor:pointer}
+.time-row{display:flex;align-items:center;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:.68rem}
+.time-cur{color:#f06020}
+.time-rem{color:var(--text-val)}
+.time-tot{color:var(--text-dim)}
+
+/* Search bar — fixed, never scrolls */
+.search-bar{
+  padding:8px 10px;background:#111009;
+  border-bottom:1px solid #1e1c18;flex-shrink:0;
+  display:flex;flex-direction:column;gap:6px}
+.search-row{display:flex;gap:6px;align-items:center}
+.search-input{
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--text-val);
+  background:#0a0908;border:1px solid #2a2620;border-radius:3px;
+  padding:5px 8px;outline:none;user-select:text;cursor:text;
+  transition:border-color .12s;flex:1;min-width:0}
+.search-input:focus{border-color:#f06020}
+.search-input::placeholder{color:var(--text-dim);font-style:italic}
+.api-key-input{max-width:130px;font-size:.65rem;flex:0 0 auto}
+.capture-row{display:flex;align-items:center;gap:8px}
+.uac-dot{width:6px;height:6px;border-radius:50%;background:#2a2820;
+  box-shadow:0 0 0 1.5px #1a1814;transition:background .3s;flex-shrink:0}
+.uac-dot.stream{background:#30c080;box-shadow:0 0 8px #30c08088}
+.stream-stats{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--text-dim)}
+
+/* Results — ONLY scrollable section on the right */
+.results-pane{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:#3a3530 transparent}
+.results-pane::-webkit-scrollbar{width:4px}
+.results-pane::-webkit-scrollbar-thumb{background:#3a3530;border-radius:2px}
+.results-header{
+  padding:7px 12px;
+  font-size:.6rem;letter-spacing:.3em;color:var(--text-dim);
+  text-transform:uppercase;
+  border-bottom:1px solid #181614;
+  background:#0e0c0a;
+  position:sticky;top:0;z-index:1}
+.result-item{
+  display:flex;gap:9px;padding:9px 12px;cursor:pointer;
+  border-bottom:1px solid #141210;transition:background .1s;align-items:flex-start}
+.result-item:hover{background:#171510}
+.result-item.active{background:#191510;border-left:2px solid #f06020}
+.result-thumb{width:76px;height:43px;object-fit:cover;border-radius:2px;
+  flex-shrink:0;background:#1a1814}
+.result-info{flex:1;min-width:0}
+.result-title{font-size:.72rem;font-weight:600;letter-spacing:.02em;color:var(--text-val);
+  line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;margin-bottom:2px}
+.result-meta{font-family:'Share Tech Mono',monospace;font-size:.56rem;color:var(--text-dim)}
+.results-empty{padding:28px 16px;text-align:center;color:var(--text-dim);
+  font-size:.72rem;letter-spacing:.1em}
+
+/* ── LEFT: section label ─────────────────────────────────── */
+.section-label{font-size:.65rem;letter-spacing:.3em;color:var(--text-dim);
+  text-transform:uppercase;margin-bottom:8px}
+
+/* ── SIGNAL PATH ─────────────────────────────────────────── */
+.sig-path{display:flex;align-items:center;overflow-x:auto;
+  scrollbar-width:none;margin-bottom:10px}
+.sig-path::-webkit-scrollbar{display:none}
+.sig-node{font-family:'Share Tech Mono',monospace;font-size:.54rem;letter-spacing:.1em;
+  color:var(--text-dim);padding:3px 5px;border:1px solid #252220;border-radius:2px;
+  white-space:nowrap;transition:color .2s,border-color .2s;flex-shrink:0}
+.sig-node.on{color:var(--accent-color,#f06020);border-color:var(--accent-color,#f06020)}
+.sig-arrow{color:#2a2820;font-size:.65rem;flex-shrink:0;padding:0 1px}
+.sig-arrow.on{color:#4a4030}
+
+/* ── PEDALBOARD ──────────────────────────────────────────── */
 .pedalboard{
   background:
     repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px),
     repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px),
     linear-gradient(180deg,#1a1208 0%,#120e06 100%);
-  border:3px solid #3a2c18;border-radius:8px;padding:14px;
+  border:3px solid #3a2c18;border-radius:8px;padding:12px;
   box-shadow:0 8px 40px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);
-  display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-@media(max-width:1060px){.pedalboard{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:640px){.pedalboard{grid-template-columns:repeat(2,1fr)}}
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  margin-bottom:16px}
 
-/* ── PEDAL ── */
+/* ── PEDAL ───────────────────────────────────────────────── */
 .pedal{position:relative;
   background:linear-gradient(160deg,#2e2a26 0%,#1e1c18 60%,#181614 100%);
   border-radius:5px;border:1px solid var(--metal-hi);
   box-shadow:0 4px 14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
   display:flex;flex-direction:column;align-items:center;
-  padding:10px 8px 12px;gap:7px;transition:box-shadow .15s;
-  animation:pedalIn .5s ease both}
-@keyframes pedalIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.pedal:nth-child(1){animation-delay:.05s}.pedal:nth-child(2){animation-delay:.1s}
-.pedal:nth-child(3){animation-delay:.15s}.pedal:nth-child(4){animation-delay:.2s}
-.pedal:nth-child(5){animation-delay:.25s}.pedal:nth-child(6){animation-delay:.3s}
-.pedal:nth-child(7){animation-delay:.35s}.pedal:nth-child(8){animation-delay:.4s}
-.pedal:nth-child(9){animation-delay:.45s}.pedal:nth-child(10){animation-delay:.5s}
-.pedal.active{box-shadow:0 4px 14px rgba(0,0,0,.7),0 0 18px -2px var(--accent-color,#f06020),inset 0 1px 0 rgba(255,255,255,.06)}
-.pedal::before{content:'';position:absolute;top:0;left:12px;right:12px;height:2px;
-  background:var(--accent-color,#f06020);border-radius:0 0 2px 2px;opacity:.35;transition:opacity .2s}
+  padding:9px 7px 10px;gap:6px;transition:box-shadow .15s;
+  animation:pedalIn .4s ease both}
+@keyframes pedalIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pedal:nth-child(1){animation-delay:.04s}.pedal:nth-child(2){animation-delay:.08s}
+.pedal:nth-child(3){animation-delay:.12s}.pedal:nth-child(4){animation-delay:.16s}
+.pedal:nth-child(5){animation-delay:.20s}.pedal:nth-child(6){animation-delay:.24s}
+.pedal:nth-child(7){animation-delay:.28s}.pedal:nth-child(8){animation-delay:.32s}
+.pedal:nth-child(9){animation-delay:.36s}.pedal:nth-child(10){animation-delay:.40s}
+.pedal.active{box-shadow:0 4px 14px rgba(0,0,0,.7),0 0 16px -3px var(--accent-color,#f06020),inset 0 1px 0 rgba(255,255,255,.06)}
+.pedal::before{content:'';position:absolute;top:0;left:10px;right:10px;height:2px;
+  background:var(--accent-color,#f06020);border-radius:0 0 2px 2px;opacity:.3;transition:opacity .2s}
 .pedal.active::before{opacity:1}
 .pedal::after{content:'';position:absolute;inset:4px;border-radius:3px;pointer-events:none;
   background:
-    radial-gradient(circle 3.5px at 6px 6px,#4a4540 60%,transparent 61%),
-    radial-gradient(circle 3.5px at calc(100% - 6px) 6px,#4a4540 60%,transparent 61%),
-    radial-gradient(circle 3.5px at 6px calc(100% - 6px),#4a4540 60%,transparent 61%),
-    radial-gradient(circle 3.5px at calc(100% - 6px) calc(100% - 6px),#4a4540 60%,transparent 61%)}
-.pedal-top{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 6px}
-.pedal-name{font-size:.68rem;font-weight:700;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase}
+    radial-gradient(circle 3px at 5px 5px,#4a4540 60%,transparent 61%),
+    radial-gradient(circle 3px at calc(100% - 5px) 5px,#4a4540 60%,transparent 61%),
+    radial-gradient(circle 3px at 5px calc(100% - 5px),#4a4540 60%,transparent 61%),
+    radial-gradient(circle 3px at calc(100% - 5px) calc(100% - 5px),#4a4540 60%,transparent 61%)}
+.pedal-top{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 4px}
+.pedal-name{font-size:.62rem;font-weight:700;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase}
 .pedal.active .pedal-name{color:var(--text-val)}
-.footswitch-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
-.led{width:7px;height:7px;border-radius:50%;background:var(--led-off);box-shadow:0 0 0 1.5px #1a1814;transition:background .2s,box-shadow .2s}
-.pedal.active .led{background:var(--accent-color,#f06020);box-shadow:0 0 8px var(--accent-color,#f06020),0 0 2px #fff}
-.footswitch{width:26px;height:26px;border-radius:50%;
+.footswitch-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.led{width:6px;height:6px;border-radius:50%;background:var(--led-off);
+  box-shadow:0 0 0 1.5px #1a1814;transition:background .2s,box-shadow .2s}
+.pedal.active .led{background:var(--accent-color,#f06020);box-shadow:0 0 7px var(--accent-color,#f06020),0 0 2px #fff}
+.footswitch{width:24px;height:24px;border-radius:50%;
   background:radial-gradient(circle at 38% 38%,#5a5450 0%,#2a2820 50%,#1a1816 100%);
   border:1.5px solid #4a4540;box-shadow:0 3px 6px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);
   cursor:pointer;transition:transform .07s,box-shadow .1s;position:relative}
-.footswitch::after{content:'';position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.09);top:4px;left:5px}
-.footswitch:active,.pedal.active .footswitch{transform:translateY(1.5px);box-shadow:0 1px 3px rgba(0,0,0,.6),inset 0 1px 3px rgba(0,0,0,.4)}
-.knobs-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 5px;width:100%}
-.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;max-width:72px}
-.knob-label{font-size:.55rem;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;text-align:center}
+.footswitch::after{content:'';position:absolute;width:5px;height:5px;border-radius:50%;
+  background:rgba(255,255,255,.09);top:3px;left:4px}
+.footswitch:active,.pedal.active .footswitch{transform:translateY(1.5px);
+  box-shadow:0 1px 3px rgba(0,0,0,.6),inset 0 1px 3px rgba(0,0,0,.4)}
+.knobs-row{display:flex;flex-wrap:wrap;justify-content:center;gap:5px 4px;width:100%}
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:50px;max-width:68px}
+.knob-label{font-size:.52rem;letter-spacing:.12em;color:var(--text-dim);
+  text-transform:uppercase;text-align:center}
 .knob-drag{cursor:ns-resize}
 .knob-svg{display:block;overflow:visible}
 .param-inputs{display:flex;flex-direction:column;gap:2px;width:100%}
 .input-row{display:flex;align-items:center;gap:2px;width:100%}
-.input-unit{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--text-dim);
-  white-space:nowrap;min-width:0;text-align:left;flex-shrink:0;max-width:28px;overflow:hidden;letter-spacing:.03em}
-.param-input{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text-val);
+.input-unit{font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--text-dim);
+  white-space:nowrap;flex-shrink:0;max-width:26px;overflow:hidden}
+.param-input{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--text-val);
   background:#131110;border:1px solid #252220;border-radius:2px;
   padding:2px 3px;width:100%;min-width:0;text-align:right;outline:none;
   cursor:text;user-select:text;transition:border-color .12s,background .12s;
@@ -134,139 +272,46 @@ header{display:flex;align-items:center;justify-content:space-between;
 .param-input:focus{border-color:var(--accent-color,#f06020);background:#1c1814}
 .param-input.pct{color:var(--text-dim)}
 .param-input.pct:focus{color:var(--text-val)}
-.param-select{font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;
-  letter-spacing:.08em;background:#1a1814;color:var(--text);border:1px solid #3a3530;
-  border-radius:3px;padding:3px 4px;cursor:pointer;text-transform:uppercase;outline:none;
-  appearance:none;width:100%;text-align:center}
+.param-select{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:.06em;background:#1a1814;color:var(--text);border:1px solid #3a3530;
+  border-radius:3px;padding:2px 4px;cursor:pointer;text-transform:uppercase;
+  outline:none;appearance:none;width:100%;text-align:center}
 .param-select:focus{border-color:var(--accent-color,#f06020)}
-.sig-path{max-width:1400px;margin:0 auto 8px;padding:0 14px;
-  display:flex;align-items:center;overflow-x:auto;scrollbar-width:none}
-.sig-path::-webkit-scrollbar{display:none}
-.sig-node{font-family:'Share Tech Mono',monospace;font-size:.56rem;letter-spacing:.1em;
-  color:var(--text-dim);padding:3px 5px;border:1px solid #252220;border-radius:2px;
-  white-space:nowrap;transition:color .2s,border-color .2s;flex-shrink:0}
-.sig-node.on{color:var(--accent-color,#f06020);border-color:var(--accent-color,#f06020)}
-.sig-arrow{color:#2a2820;font-size:.68rem;flex-shrink:0;padding:0 1px}
-.sig-arrow.on{color:#4a4030}
-.presets-section{max-width:1400px;margin:16px auto 20px;padding:0 14px;
-  display:flex;flex-direction:column;gap:10px}
-.presets-bar{display:flex;gap:10px;flex-wrap:wrap}
-.preset-slot{flex:1;min-width:130px;background:linear-gradient(160deg,#252220 0%,#1a1814 100%);
-  border:1px solid #3a3530;border-radius:4px;padding:10px 12px;
-  display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.preset-name-row{display:flex;align-items:center;gap:6px}
-.preset-num{font-size:.72rem;font-weight:700;letter-spacing:.2em;color:var(--accent-yl);flex-shrink:0}
+
+/* ── PRESETS ─────────────────────────────────────────────── */
+.presets-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.preset-slot{background:linear-gradient(160deg,#252220 0%,#1a1814 100%);
+  border:1px solid #3a3530;border-radius:4px;padding:8px 10px;
+  display:flex;flex-direction:column;gap:5px}
+.preset-name-row{display:flex;align-items:center;gap:5px}
+.preset-num{font-size:.68rem;font-weight:700;letter-spacing:.2em;color:var(--accent-yl);flex-shrink:0}
 .preset-name{background:transparent;border:none;border-bottom:1px solid #3a3530;
   color:var(--text-val);font-family:'Barlow Condensed',sans-serif;
-  font-size:.88rem;font-weight:600;letter-spacing:.05em;
-  width:100%;padding:2px 0;outline:none;transition:border-color .15s;user-select:text}
+  font-size:.82rem;font-weight:600;letter-spacing:.04em;
+  width:100%;padding:1px 0;outline:none;user-select:text}
 .preset-name:focus{border-bottom-color:var(--accent-yl)}
-.preset-btns{display:flex;gap:6px}
-.preset-btn{flex:1;padding:5px 0;border:1px solid #3a3530;border-radius:2px;
+.preset-btns{display:flex;gap:5px}
+.preset-btn{flex:1;padding:4px 0;border:1px solid #3a3530;border-radius:2px;
   background:#1a1814;color:var(--text-dim);font-family:'Barlow Condensed',sans-serif;
-  font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   cursor:pointer;transition:all .12s}
 .preset-btn:hover{background:#2a2820;color:var(--text-val);border-color:#6a6050}
 .preset-btn.load:hover{border-color:var(--accent-yl);color:var(--accent-yl)}
 .preset-btn.save:hover{border-color:#30c080;color:#30c080}
 
-/* ═══ JAM TAB ════════════════════════════════════════════════════════════ */
-.jam-section{max-width:1400px;margin:0 auto;padding:16px 14px 24px}
-.jam-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;
-  background:#141210;border:1px solid #2a2620;border-radius:5px;
-  padding:10px 14px;margin-bottom:14px}
-.jam-toolbar label{font-size:.68rem;letter-spacing:.15em;color:var(--text-dim);
-  text-transform:uppercase;white-space:nowrap}
-.jam-input{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--text-val);
-  background:#0e0e0e;border:1px solid #2a2620;border-radius:3px;
-  padding:5px 8px;outline:none;user-select:text;cursor:text;transition:border-color .12s;
-  flex:1;min-width:120px}
-.jam-input:focus{border-color:#f06020}
-.jam-input::placeholder{color:var(--text-dim);font-style:italic}
-.btn-sm{padding:5px 14px;font-size:.78rem}
-.audio-device-row{display:flex;align-items:center;gap:8px}
-.audio-sel{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--text-val);
-  background:#0e0e0e;border:1px solid #2a2620;border-radius:3px;
-  padding:4px 8px;outline:none;appearance:none;cursor:pointer;max-width:220px;
-  transition:border-color .12s}
-.audio-sel:focus{border-color:#30c080}
-.uac-dot{width:7px;height:7px;border-radius:50%;background:#2a2820;
-  box-shadow:0 0 0 1.5px #1a1814;transition:background .3s}
-.uac-dot.stream{background:#30c080;box-shadow:0 0 8px #30c08088}
-.jam-body{display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start}
-@media(max-width:900px){.jam-body{grid-template-columns:1fr}}
-
-/* ── YouTube Player ── */
-.player-card{background:linear-gradient(160deg,#1a1814 0%,#121010 100%);
-  border:1px solid #2a2620;border-radius:6px;overflow:hidden}
-.yt-wrap{position:relative;padding-bottom:56.25%;height:0;background:#000;
-  border-radius:4px 4px 0 0;overflow:hidden}
-.yt-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
-#ytPlayerDiv{position:absolute;top:0;left:0;width:100%;height:100%}
-.player-controls{padding:12px 14px 14px;background:#0e0c0a}
-.ctrl-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px}
-.ctrl-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid #3a3530;
-  background:linear-gradient(160deg,#2e2a26 0%,#1a1814 100%);
-  color:var(--text-val);font-size:1rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 6px rgba(0,0,0,.5);transition:all .12s;font-family:inherit}
-.ctrl-btn:hover{border-color:#f06020;background:linear-gradient(160deg,#3a3028 0%,#252018 100%)}
-.ctrl-btn:active{transform:scale(.94)}
-.ctrl-btn.play-pause{width:44px;height:44px;font-size:1.2rem;border-color:#f06020}
-.seek-wrap{margin-bottom:8px}
-.seek-slider{width:100%;height:4px;-webkit-appearance:none;appearance:none;
-  background:linear-gradient(90deg,#f06020 var(--pct,0%),#252220 var(--pct,0%));
-  border-radius:2px;cursor:pointer;outline:none}
-.seek-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
-  border-radius:50%;background:#f06020;box-shadow:0 0 6px #f0602088;cursor:pointer}
-.seek-slider::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;
-  background:#f06020;box-shadow:0 0 6px #f0602088;cursor:pointer}
-.time-row{display:flex;align-items:center;justify-content:space-between;
-  font-family:'Share Tech Mono',monospace;font-size:.72rem}
-.time-cur{color:#f06020}
-.time-rem{color:var(--text-val);text-align:center}
-.time-tot{color:var(--text-dim)}
-.now-playing{font-size:.72rem;letter-spacing:.05em;color:var(--text-dim);
-  padding:8px 14px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  border-top:1px solid #1e1c18}
-.no-video{padding:40px 20px;text-align:center;color:var(--text-dim);
-  font-size:.82rem;letter-spacing:.1em}
-.no-video .icon{font-size:2.5rem;display:block;margin-bottom:8px;opacity:.3}
-
-/* ── Search Results ── */
-.results-card{background:#141210;border:1px solid #2a2620;border-radius:6px;overflow:hidden}
-.results-header{padding:10px 12px;border-bottom:1px solid #1e1c18;
-  font-size:.65rem;letter-spacing:.3em;color:var(--text-dim);text-transform:uppercase}
-.results-list{max-height:460px;overflow-y:auto;scrollbar-width:thin;
-  scrollbar-color:#3a3530 transparent}
-.results-list::-webkit-scrollbar{width:4px}
-.results-list::-webkit-scrollbar-track{background:transparent}
-.results-list::-webkit-scrollbar-thumb{background:#3a3530;border-radius:2px}
-.result-item{display:flex;gap:10px;padding:10px 12px;cursor:pointer;
-  border-bottom:1px solid #1a1814;transition:background .12s;align-items:flex-start}
-.result-item:last-child{border-bottom:none}
-.result-item:hover{background:#1e1a14}
-.result-item.active{background:#1e1a14;border-left:2px solid #f06020}
-.result-thumb{width:80px;height:45px;object-fit:cover;border-radius:2px;flex-shrink:0;
-  background:#1a1814}
-.result-info{flex:1;min-width:0}
-.result-title{font-size:.75rem;font-weight:600;letter-spacing:.03em;color:var(--text-val);
-  line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;margin-bottom:3px}
-.result-meta{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--text-dim)}
-.results-empty{padding:32px 16px;text-align:center;color:var(--text-dim);
-  font-size:.75rem;letter-spacing:.1em}
-
-/* ── TOAST ── */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+/* ── TOAST ───────────────────────────────────────────────── */
+#toast{position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(70px);
   background:#2a2820;border:1px solid #4a4038;border-radius:4px;
-  padding:10px 22px;font-size:.82rem;letter-spacing:.1em;color:var(--text-val);
-  box-shadow:0 8px 32px rgba(0,0,0,.6);transition:transform .25s cubic-bezier(.22,1,.36,1);z-index:10000}
+  padding:9px 20px;font-size:.8rem;letter-spacing:.1em;color:var(--text-val);
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  transition:transform .25s cubic-bezier(.22,1,.36,1);z-index:10000}
 #toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
+<!-- ── HEADER ──────────────────────────────────────────────── -->
 <header>
   <div class="logo">
     <span class="logo-main">GuitarFX</span>
@@ -281,231 +326,180 @@ header{display:flex;align-items:center;justify-content:space-between;
   </div>
 </header>
 
-<nav class="tabs">
-  <button class="tab active" onclick="switchTab('pedalboard',this)">
-    <span class="tab-icon">⬡</span> PEDALBOARD
-  </button>
-  <button class="tab" onclick="switchTab('jam',this)">
-    <span class="tab-icon">🎸</span> JAM
-  </button>
-</nav>
+<!-- ── MAIN LAYOUT ─────────────────────────────────────────── -->
+<div class="app-body">
 
-<!-- ═══ PEDALBOARD TAB ════════════════════════════════════════════════════ -->
-<div class="section-content active" id="tab-pedalboard">
-  <div class="sig-path" id="sigPath"></div>
-  <div class="board-outer">
-    <div class="section-label">⬡ EFFECTS CHAIN</div>
+  <!-- ═══ LEFT: Pedalboard (scrollable) ═══════════════════ -->
+  <div class="left-col">
+
+    <div class="section-label" style="margin-bottom:6px">⬡ SIGNAL CHAIN</div>
+    <div class="sig-path" id="sigPath"></div>
+
+    <div class="section-label">⬡ EFFECTS</div>
     <div class="pedalboard" id="pedalboard"></div>
-  </div>
-  <div class="presets-section">
+
     <div class="section-label">⬡ PRESETS</div>
     <div class="presets-bar" id="presetBar"></div>
+
   </div>
-</div>
 
-<!-- ═══ JAM TAB ═══════════════════════════════════════════════════════════ -->
-<div class="section-content" id="tab-jam">
-  <div class="jam-section">
+  <!-- ═══ RIGHT: YouTube + Search ════════════════════════ -->
+  <div class="right-col">
 
-    <!-- Toolbar -->
-    <div class="jam-toolbar">
-      <!-- YouTube search -->
-      <label>YT API KEY</label>
-      <input class="jam-input" id="apiKeyInput" type="password" placeholder="AIza…" style="max-width:200px" oninput="localStorage.setItem('ytKey',this.value)">
-      <input class="jam-input" id="searchInput" placeholder="Search YouTube…" onkeydown="if(event.key==='Enter')doSearch()">
-      <button class="btn btn-sm" onclick="doSearch()">SEARCH</button>
-      <!-- Tab audio capture → stream PCM16 mono to ESP32 over CDC -->
-      <div class="audio-device-row">
-        <label>JAM AUDIO</label>
+    <!-- YouTube iFrame — fixed 16:9 -->
+    <div class="yt-wrap">
+      <div id="ytPlayerDiv"></div>
+      <div class="no-video" id="noVideo">
+        <span class="no-video-icon">🎬</span>
+        SEARCH BELOW AND SELECT A SONG
+      </div>
+    </div>
+
+    <!-- Now playing -->
+    <div class="now-playing" id="nowPlaying" style="display:none"></div>
+
+    <!-- Player controls — fixed -->
+    <div class="player-controls">
+      <div class="ctrl-row">
+        <button class="ctrl-btn" onclick="seekRel(-5)" title="Rewind 5s">⟨ 5s</button>
+        <button class="ctrl-btn play-pause" id="btnPlayPause" onclick="togglePlay()">▶</button>
+        <button class="ctrl-btn" onclick="seekRel(10)" title="Forward 10s">10s ⟩</button>
+      </div>
+      <div class="seek-wrap">
+        <input class="seek-slider" id="seekSlider" type="range" min="0" max="100"
+          value="0" step="0.1"
+          oninput="onSeekInput(this)" onchange="onSeekChange(this)"
+          style="--pct:0%">
+      </div>
+      <div class="time-row">
+        <span class="time-cur" id="timeCur">0:00</span>
+        <span class="time-rem" id="timeRem">–</span>
+        <span class="time-tot" id="timeTot">0:00</span>
+      </div>
+    </div>
+
+    <!-- Search bar — fixed -->
+    <div class="search-bar">
+      <div class="search-row">
+        <input class="search-input api-key-input" id="apiKeyInput" type="password"
+          placeholder="YT API Key…" oninput="localStorage.setItem('ytKey',this.value)">
+        <input class="search-input" id="searchInput"
+          placeholder="Search YouTube to jam…"
+          onkeydown="if(event.key==='Enter')doSearch()">
+        <button class="btn btn-sm" onclick="doSearch()">GO</button>
+      </div>
+      <div class="capture-row">
         <button class="btn btn-sm" id="btnCapture" onclick="toggleCapture()">▶ CAPTURE TAB</button>
-        <div class="uac-dot" id="uacDot" title="Streaming to ESP32"></div>
-        <span id="streamStats" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text-dim)"></span>
+        <div class="uac-dot" id="uacDot"></div>
+        <span class="stream-stats" id="streamStats"></span>
       </div>
     </div>
 
-    <div class="jam-body">
-      <!-- Player column -->
-      <div>
-        <div class="section-label">⬡ PLAYER</div>
-        <div class="player-card">
-          <div class="yt-wrap">
-            <div id="ytPlayerDiv"></div>
-            <div class="no-video" id="noVideo" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-              <span class="icon">🎬</span>
-              SEARCH AND SELECT A VIDEO TO BEGIN
-            </div>
-          </div>
-          <!-- Custom controls -->
-          <div class="player-controls">
-            <div class="ctrl-row">
-              <button class="ctrl-btn" onclick="seekRel(-5)" title="Rewind 5s">⟨ 5</button>
-              <button class="ctrl-btn play-pause" id="btnPlayPause" onclick="togglePlay()">▶</button>
-              <button class="ctrl-btn" onclick="seekRel(10)" title="Forward 10s">10 ⟩</button>
-            </div>
-            <div class="seek-wrap">
-              <input class="seek-slider" id="seekSlider" type="range" min="0" max="100"
-                value="0" step="0.1"
-                oninput="onSeekInput(this)"
-                onchange="onSeekChange(this)"
-                style="--pct:0%">
-            </div>
-            <div class="time-row">
-              <span class="time-cur" id="timeCur">0:00</span>
-              <span class="time-rem" id="timeRem">–</span>
-              <span class="time-tot" id="timeTot">0:00</span>
-            </div>
-          </div>
-          <div class="now-playing" id="nowPlaying" style="display:none"></div>
-        </div>
-      </div>
-
-      <!-- Results column -->
-      <div>
-        <div class="section-label">⬡ RESULTS</div>
-        <div class="results-card">
-          <div class="results-header" id="resultsHeader">NO RESULTS YET</div>
-          <div class="results-list" id="resultsList">
-            <div class="results-empty">Enter a search above to find songs to jam to</div>
-          </div>
-        </div>
+    <!-- Results — ONLY scrollable section on the right -->
+    <div class="results-pane">
+      <div class="results-header" id="resultsHeader">NO RESULTS YET</div>
+      <div id="resultsList">
+        <div class="results-empty">Search for a song above to start jamming</div>
       </div>
     </div>
 
-  </div><!-- /jam-section -->
-</div>
+  </div><!-- /right-col -->
+</div><!-- /app-body -->
 
 <div id="toast"></div>
 
-<!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
-/* ───────────────────────────────────────────────────────────
-   USB SERIAL (Web Serial API — replaces Web Bluetooth)
-   Protocol: 4-byte commands to device
-             62-byte state responses from device [0xFA][0xCB][60 bytes]
-─────────────────────────────────────────────────────────── */
-const RESP_MAGIC_0 = 0xFA, RESP_MAGIC_1 = 0xCB;
-const RESP_TOTAL   = 62;
+/* ─── USB SERIAL ────────────────────────────────────────── */
+const RESP_MAGIC_0=0xFA,RESP_MAGIC_1=0xCB,RESP_TOTAL=62;
+const CMD_TOGGLE=0x00,CMD_SET_PARAM=0x01,CMD_LOAD=0x02,CMD_SAVE=0x03,CMD_GET=0x04;
+let serialPort=null,serialReader=null;
+let rxBuf=new Uint8Array(0);
 
-const CMD_TOGGLE   = 0x00, CMD_SET_PARAM = 0x01;
-const CMD_LOAD     = 0x02, CMD_SAVE      = 0x03, CMD_GET = 0x04;
-
-let serialPort = null, serialWriter = null, serialReader = null;
-let rxBuf = new Uint8Array(0);
-
-async function toggleUSB() {
-  if (serialPort) { await disconnectUSB(); return; }
-  if (!navigator.serial) {
-    toast('Web Serial not supported. Use Chrome or Edge on desktop.');
-    return;
-  }
-  setStatus('scan', 'PAIRING…');
-  try {
-    serialPort = await navigator.serial.requestPort({
-      filters: [{ usbVendorId: 0x303A }]  // Espressif — also try without filters if not found
-    });
-    await serialPort.open({ baudRate: 115200 });
-    setStatus('conn', 'CONNECTED');
-    document.getElementById('btnConnect').textContent = 'DISCONNECT';
+async function toggleUSB(){
+  if(serialPort){await disconnectUSB();return;}
+  if(!navigator.serial){toast('Web Serial not supported. Use Chrome or Edge.');return;}
+  setStatus('scan','PAIRING…');
+  try{
+    serialPort=await navigator.serial.requestPort({filters:[{usbVendorId:0x303A}]});
+    await serialPort.open({baudRate:115200});
+    setStatus('conn','CONNECTED');
+    document.getElementById('btnConnect').textContent='DISCONNECT';
     document.getElementById('btnConnect').classList.add('connected');
-    // Start read loop
     startSerialRead();
-    // Get initial state
-    await serialSend(new Uint8Array([CMD_GET, 0, 0, 0]));
-    toast('USB connected — state syncing…');
-  } catch(e) {
-    serialPort = null;
-    setStatus('off', 'DISCONNECTED');
-    if (e.name !== 'NotFoundError') toast('Serial error: ' + e.message);
+    await serialSend(new Uint8Array([CMD_GET,0,0,0]));
+    toast('USB connected — syncing state…');
+  }catch(e){
+    serialPort=null;setStatus('off','DISCONNECTED');
+    if(e.name!=='NotFoundError') toast('Serial error: '+e.message);
   }
 }
-
-async function disconnectUSB() {
-  try { if (serialReader) { await serialReader.cancel(); serialReader = null; } } catch(e){}
-  try { if (serialWriter) { serialWriter.releaseLock(); serialWriter = null; } } catch(e){}
-  try { if (serialPort)   { await serialPort.close(); } } catch(e){}
-  serialPort = null;
-  setStatus('off', 'DISCONNECTED');
-  document.getElementById('btnConnect').textContent = 'CONNECT USB';
+async function disconnectUSB(){
+  try{if(serialReader){await serialReader.cancel();serialReader=null;}}catch(e){}
+  try{if(serialPort){await serialPort.close();}}catch(e){}
+  serialPort=null;
+  setStatus('off','DISCONNECTED');
+  document.getElementById('btnConnect').textContent='CONNECT USB';
   document.getElementById('btnConnect').classList.remove('connected');
   toast('USB disconnected');
 }
-
-async function startSerialRead() {
-  try {
-    serialReader = serialPort.readable.getReader();
-    while (true) {
-      const { value, done } = await serialReader.read();
-      if (done) break;
-      if (value) appendRxBuf(value);
+async function startSerialRead(){
+  try{
+    serialReader=serialPort.readable.getReader();
+    while(true){
+      const{value,done}=await serialReader.read();
+      if(done)break;
+      if(value)appendRxBuf(value);
     }
-  } catch(e) {
-    if (e.name !== 'AbortError') console.warn('Serial read error:', e);
-    disconnectUSB();
+  }catch(e){if(e.name!=='AbortError')console.warn('Serial read:',e);disconnectUSB();}
+}
+function appendRxBuf(inc){
+  const nb=new Uint8Array(rxBuf.length+inc.length);
+  nb.set(rxBuf);nb.set(inc,rxBuf.length);rxBuf=nb;
+  while(rxBuf.length>=RESP_TOTAL){
+    const i0=rxBuf.indexOf(RESP_MAGIC_0);
+    if(i0===-1){rxBuf=new Uint8Array(0);break;}
+    if(rxBuf.length<i0+RESP_TOTAL)break;
+    if(rxBuf[i0+1]===RESP_MAGIC_1){applyStateBlob(rxBuf.slice(i0+2,i0+RESP_TOTAL).buffer);rxBuf=rxBuf.slice(i0+RESP_TOTAL);}
+    else rxBuf=rxBuf.slice(i0+1);
   }
 }
-
-function appendRxBuf(incoming) {
-  const nb = new Uint8Array(rxBuf.length + incoming.length);
-  nb.set(rxBuf); nb.set(incoming, rxBuf.length);
-  rxBuf = nb;
-  // Parse [0xFA][0xCB][60 bytes] packets
-  while (rxBuf.length >= RESP_TOTAL) {
-    const i0 = rxBuf.indexOf(RESP_MAGIC_0);
-    if (i0 === -1) { rxBuf = new Uint8Array(0); break; }
-    if (rxBuf.length < i0 + RESP_TOTAL) break;
-    if (rxBuf[i0 + 1] === RESP_MAGIC_1) {
-      applyStateBlob(rxBuf.slice(i0 + 2, i0 + RESP_TOTAL).buffer);
-      rxBuf = rxBuf.slice(i0 + RESP_TOTAL);
-    } else {
-      rxBuf = rxBuf.slice(i0 + 1);
-    }
-  }
+async function serialSend(bytes){
+  if(!serialPort||!serialPort.writable)return;
+  const w=serialPort.writable.getWriter();
+  try{await w.write(bytes);}finally{w.releaseLock();}
+}
+function setStatus(type,label){
+  document.getElementById('statusDot').className='status-dot'+(type==='conn'?' conn':type==='scan'?' scan':'');
+  document.getElementById('statusLabel').textContent=label;
 }
 
-async function serialSend(bytes) {
-  if (!serialPort || !serialPort.writable) return;
-  const writer = serialPort.writable.getWriter();
-  try { await writer.write(bytes); }
-  finally { writer.releaseLock(); }
-}
-
-function setStatus(type, label) {
-  document.getElementById('statusDot').className = 'status-dot' + (type==='conn'?' conn':type==='scan'?' scan':'');
-  document.getElementById('statusLabel').textContent = label;
-}
-
-/* ───────────────────────────────────────────────────────────
-   CONVERSION TABLE (same as previous version)
-─────────────────────────────────────────────────────────── */
-const CONV = {
-  pct:     { unit:'%',    realMin:0,    realMax:100,  realDec:0, toReal:p=>p,              fromReal:v=>v },
-  gainX:   { unit:'×',   realMin:1,    realMax:64,   realDec:1, toReal:p=>+(1+p*0.63).toFixed(1),      fromReal:v=>+(v-1)/0.63 },
-  distX:   { unit:'×',   realMin:10,   realMax:500,  realDec:0, toReal:p=>Math.round(10+p*4.9),         fromReal:v=>+(v-10)/4.9 },
-  fuzzX:   { unit:'×',   realMin:100,  realMax:1000, realDec:0, toReal:p=>Math.round(100+p*9),          fromReal:v=>+(v-100)/9 },
-  toneHz1: { unit:'Hz',  realMin:500,  realMax:5000, realDec:0, toReal:p=>Math.round(500+p*45),         fromReal:v=>+(v-500)/45 },
-  toneHz2: { unit:'Hz',  realMin:300,  realMax:3300, realDec:0, toReal:p=>Math.round(300+p*30),         fromReal:v=>+(v-300)/30 },
-  toneHz3: { unit:'Hz',  realMin:200,  realMax:2200, realDec:0, toReal:p=>Math.round(200+p*20),         fromReal:v=>+(v-200)/20 },
-  threshdB:{ unit:'dBFS',realMin:-60,  realMax:0,    realDec:1, toReal:p=>+(-60+p*0.6).toFixed(1),      fromReal:v=>+(v+60)/0.6 },
-  ratio:   { unit:':1',  realMin:1,    realMax:20,   realDec:1, toReal:p=>+(1+p*0.19).toFixed(1),       fromReal:v=>+(v-1)/0.19 },
-  atkMs:   { unit:'ms',  realMin:0.1,  realMax:50,   realDec:1, toReal:p=>+(50-p*0.499).toFixed(1),     fromReal:v=>+(50-v)/0.499 },
-  relMs:   { unit:'ms',  realMin:10,   realMax:500,  realDec:0, toReal:p=>Math.round(500-p*4.9),         fromReal:v=>+(500-v)/4.9 },
-  fdbkCoef:{ unit:'',    realMin:0,    realMax:0.95, realDec:2, toReal:p=>+(p*0.0095).toFixed(2),        fromReal:v=>+v/0.0095 },
-  revTime: { unit:'s',   realMin:0.3,  realMax:1.8,  realDec:2, toReal:p=>+(0.3+p*0.015).toFixed(2),    fromReal:v=>+(v-0.3)/0.015 },
-  dampHz:  { unit:'Hz',  realMin:200,  realMax:2000, realDec:0, toReal:p=>Math.round(2000-p*18),         fromReal:v=>+(2000-v)/18 },
-  rateHz5: { unit:'Hz',  realMin:0.1,  realMax:5,    realDec:2, toReal:p=>+(0.1+p*0.049).toFixed(2),    fromReal:v=>+(v-0.1)/0.049 },
-  rateHz1: { unit:'Hz',  realMin:0.05, realMax:1,    realDec:2, toReal:p=>+(0.05+p*0.0095).toFixed(2),  fromReal:v=>+(v-0.05)/0.0095 },
-  depthMs1:{ unit:'ms',  realMin:0,    realMax:24.9, realDec:1, toReal:p=>+(p*0.249).toFixed(1),         fromReal:v=>+v/0.249 },
-  depthMs2:{ unit:'ms',  realMin:0,    realMax:14.7, realDec:1, toReal:p=>+(p*0.147).toFixed(1),         fromReal:v=>+v/0.147 },
-  depth085:{ unit:'',    realMin:0,    realMax:0.85, realDec:2, toReal:p=>+(p*0.0085).toFixed(2),        fromReal:v=>+v/0.0085 },
-  fdbk087: { unit:'',    realMin:0,    realMax:0.87, realDec:2, toReal:p=>+(p*0.0087).toFixed(2),        fromReal:v=>+v/0.0087 },
+/* ─── CONVERSION TABLE ──────────────────────────────────── */
+const CONV={
+  pct:     {unit:'%',   realMin:0,   realMax:100, realDec:0,toReal:p=>p,                          fromReal:v=>v},
+  gainX:   {unit:'×',  realMin:1,   realMax:64,  realDec:1,toReal:p=>+(1+p*0.63).toFixed(1),      fromReal:v=>+(v-1)/0.63},
+  distX:   {unit:'×',  realMin:10,  realMax:500, realDec:0,toReal:p=>Math.round(10+p*4.9),         fromReal:v=>+(v-10)/4.9},
+  fuzzX:   {unit:'×',  realMin:100, realMax:1000,realDec:0,toReal:p=>Math.round(100+p*9),          fromReal:v=>+(v-100)/9},
+  toneHz1: {unit:'Hz', realMin:500, realMax:5000,realDec:0,toReal:p=>Math.round(500+p*45),         fromReal:v=>+(v-500)/45},
+  toneHz2: {unit:'Hz', realMin:300, realMax:3300,realDec:0,toReal:p=>Math.round(300+p*30),         fromReal:v=>+(v-300)/30},
+  toneHz3: {unit:'Hz', realMin:200, realMax:2200,realDec:0,toReal:p=>Math.round(200+p*20),         fromReal:v=>+(v-200)/20},
+  threshdB:{unit:'dBFS',realMin:-60,realMax:0,   realDec:1,toReal:p=>+(-60+p*0.6).toFixed(1),      fromReal:v=>+(v+60)/0.6},
+  ratio:   {unit:':1', realMin:1,   realMax:20,  realDec:1,toReal:p=>+(1+p*0.19).toFixed(1),       fromReal:v=>+(v-1)/0.19},
+  atkMs:   {unit:'ms', realMin:0.1, realMax:50,  realDec:1,toReal:p=>+(50-p*0.499).toFixed(1),     fromReal:v=>+(50-v)/0.499},
+  relMs:   {unit:'ms', realMin:10,  realMax:500, realDec:0,toReal:p=>Math.round(500-p*4.9),         fromReal:v=>+(500-v)/4.9},
+  fdbkCoef:{unit:'',   realMin:0,   realMax:0.95,realDec:2,toReal:p=>+(p*0.0095).toFixed(2),        fromReal:v=>+v/0.0095},
+  revTime: {unit:'s',  realMin:0.3, realMax:1.8, realDec:2,toReal:p=>+(0.3+p*0.015).toFixed(2),    fromReal:v=>+(v-0.3)/0.015},
+  dampHz:  {unit:'Hz', realMin:200, realMax:2000,realDec:0,toReal:p=>Math.round(2000-p*18),         fromReal:v=>+(2000-v)/18},
+  rateHz5: {unit:'Hz', realMin:0.1, realMax:5,   realDec:2,toReal:p=>+(0.1+p*0.049).toFixed(2),    fromReal:v=>+(v-0.1)/0.049},
+  rateHz1: {unit:'Hz', realMin:0.05,realMax:1,   realDec:2,toReal:p=>+(0.05+p*0.0095).toFixed(2),  fromReal:v=>+(v-0.05)/0.0095},
+  depthMs1:{unit:'ms', realMin:0,   realMax:24.9,realDec:1,toReal:p=>+(p*0.249).toFixed(1),         fromReal:v=>+v/0.249},
+  depthMs2:{unit:'ms', realMin:0,   realMax:14.7,realDec:1,toReal:p=>+(p*0.147).toFixed(1),         fromReal:v=>+v/0.147},
+  depth085:{unit:'',   realMin:0,   realMax:0.85,realDec:2,toReal:p=>+(p*0.0085).toFixed(2),        fromReal:v=>+v/0.0085},
+  fdbk087: {unit:'',   realMin:0,   realMax:0.87,realDec:2,toReal:p=>+(p*0.0087).toFixed(2),        fromReal:v=>+v/0.0087},
 };
 
-/* ───────────────────────────────────────────────────────────
-   EFFECTS DEFINITION
-─────────────────────────────────────────────────────────── */
-const EFFECTS = [
+/* ─── EFFECTS DEFINITION ────────────────────────────────── */
+const EFFECTS=[
   {id:9,name:'Noise Gate',tag:'GATE',color:'#0090d0',params:[
     {name:'Thresh',pid:0,def:20,conv:'threshdB'},{name:'Attack',pid:1,def:70,conv:'atkMs'},{name:'Rel',pid:2,def:30,conv:'relMs'}]},
   {id:3,name:'Compressor',tag:'COMP',color:'#20a0d0',params:[
@@ -530,19 +524,15 @@ const EFFECTS = [
     {name:'Mode',pid:3,def:0,type:'select',options:['Room','Hall']}]},
 ];
 
-/* ───────────────────────────────────────────────────────────
-   LOCAL STATE
-─────────────────────────────────────────────────────────── */
-const fxState = {};
-EFFECTS.forEach(fx => {
-  fxState[fx.id] = { enabled: false, p: [0,0,0,0,0] };
-  fx.params.forEach(pm => { fxState[fx.id].p[pm.pid] = pm.def ?? 0; });
+/* ─── LOCAL STATE ───────────────────────────────────────── */
+const fxState={};
+EFFECTS.forEach(fx=>{
+  fxState[fx.id]={enabled:false,p:[0,0,0,0,0]};
+  fx.params.forEach(pm=>{fxState[fx.id].p[pm.pid]=pm.def??0;});
 });
 
-/* ───────────────────────────────────────────────────────────
-   SVG KNOB
-─────────────────────────────────────────────────────────── */
-function makeKnob(pct, color) {
+/* ─── SVG KNOB ──────────────────────────────────────────── */
+function makeKnob(pct,color){
   const R=18,cx=20,cy=20,minA=-135,maxA=135;
   const angle=minA+(Math.min(100,Math.max(0,pct))/100)*(maxA-minA);
   const rad=a=>a*Math.PI/180;
@@ -564,24 +554,22 @@ function makeKnob(pct, color) {
 
 const domId=(t,fxId,pid)=>`${t}_${fxId}_${pid}`;
 
-/* ───────────────────────────────────────────────────────────
-   BUILD PEDALS
-─────────────────────────────────────────────────────────── */
-function buildPedals() {
-  const board = document.getElementById('pedalboard');
-  board.innerHTML = '';
-  EFFECTS.forEach(fx => {
-    const div = document.createElement('div');
-    div.className = 'pedal' + (fxState[fx.id].enabled ? ' active' : '');
-    div.style.setProperty('--accent-color', fx.color);
-    div.dataset.fxId = fx.id;
-    const knobsHTML = fx.params.map(pm => {
-      if (pm.type === 'select') {
-        const opts = pm.options.map((o,i) => `<option value="${i}"${fxState[fx.id].p[pm.pid]===i?' selected':''}>${o}</option>`).join('');
+/* ─── BUILD PEDALS ──────────────────────────────────────── */
+function buildPedals(){
+  const board=document.getElementById('pedalboard');
+  board.innerHTML='';
+  EFFECTS.forEach(fx=>{
+    const div=document.createElement('div');
+    div.className='pedal'+(fxState[fx.id].enabled?' active':'');
+    div.style.setProperty('--accent-color',fx.color);
+    div.dataset.fxId=fx.id;
+    const knobsHTML=fx.params.map(pm=>{
+      if(pm.type==='select'){
+        const opts=pm.options.map((o,i)=>`<option value="${i}"${fxState[fx.id].p[pm.pid]===i?' selected':''}>${o}</option>`).join('');
         return `<div class="knob-wrap"><div class="knob-label">${pm.name}</div>
           <select class="param-select" onchange="onSelectChange(${fx.id},${pm.pid},+this.value)">${opts}</select></div>`;
       }
-      const c=CONV[pm.conv], pct=fxState[fx.id].p[pm.pid], rVal=c.toReal(pct), isPct=pm.conv==='pct';
+      const c=CONV[pm.conv],pct=fxState[fx.id].p[pm.pid],rVal=c.toReal(pct),isPct=pm.conv==='pct';
       const rStep=c.realDec>0?Math.pow(10,-c.realDec):1;
       return `<div class="knob-wrap">
         <div class="knob-label">${pm.name}</div>
@@ -603,7 +591,7 @@ function buildPedals() {
             <span class="input-unit">${c.unit}</span></div>`:''}
         </div></div>`;
     }).join('');
-    div.innerHTML = `
+    div.innerHTML=`
       <div class="pedal-top">
         <span class="pedal-name">${fx.name}</span>
         <div class="footswitch-wrap" onclick="toggleFx(${fx.id})">
@@ -614,26 +602,26 @@ function buildPedals() {
   buildSigPath();
 }
 
-function buildSigPath() {
-  const bar = document.getElementById('sigPath');
-  bar.innerHTML = '';
-  const inN = document.createElement('span'); inN.className='sig-node'; inN.textContent='IN'; bar.appendChild(inN);
-  EFFECTS.forEach(fx => {
+function buildSigPath(){
+  const bar=document.getElementById('sigPath');
+  bar.innerHTML='';
+  const inN=document.createElement('span');inN.className='sig-node';inN.textContent='IN';bar.appendChild(inN);
+  EFFECTS.forEach(fx=>{
     const arr=document.createElement('span');
-    arr.className='sig-arrow'+(fxState[fx.id].enabled?' on':''); arr.textContent='→'; arr.dataset.fxArrow=fx.id; bar.appendChild(arr);
+    arr.className='sig-arrow'+(fxState[fx.id].enabled?' on':'');arr.textContent='→';arr.dataset.fxArrow=fx.id;bar.appendChild(arr);
     const node=document.createElement('span');
-    node.className='sig-node'+(fxState[fx.id].enabled?' on':''); node.style.setProperty('--accent-color',fx.color);
-    node.textContent=fx.tag; node.dataset.fxNode=fx.id; bar.appendChild(node);
+    node.className='sig-node'+(fxState[fx.id].enabled?' on':'');node.style.setProperty('--accent-color',fx.color);
+    node.textContent=fx.tag;node.dataset.fxNode=fx.id;bar.appendChild(node);
   });
-  const arr2=document.createElement('span'); arr2.className='sig-arrow'; arr2.textContent='→'; bar.appendChild(arr2);
-  const outN=document.createElement('span'); outN.className='sig-node'; outN.textContent='OUT'; bar.appendChild(outN);
+  const a2=document.createElement('span');a2.className='sig-arrow';a2.textContent='→';bar.appendChild(a2);
+  const oN=document.createElement('span');oN.className='sig-node';oN.textContent='OUT';bar.appendChild(oN);
 }
 
-function buildPresets() {
-  const bar = document.getElementById('presetBar');
-  bar.innerHTML = '';
-  ['Clean Boost','Crunch','Lead','Ambient','Custom'].forEach((name,i) => {
-    const s=document.createElement('div'); s.className='preset-slot';
+function buildPresets(){
+  const bar=document.getElementById('presetBar');
+  bar.innerHTML='';
+  ['Clean','Crunch','Lead','Ambient','Custom'].forEach((name,i)=>{
+    const s=document.createElement('div');s.className='preset-slot';
     s.innerHTML=`<div class="preset-name-row"><span class="preset-num">P${i+1}</span>
       <input class="preset-name" type="text" value="${name}" spellcheck="false"></div>
       <div class="preset-btns">
@@ -643,225 +631,146 @@ function buildPresets() {
   });
 }
 
-/* ───────────────────────────────────────────────────────────
-   PARAM APPLY
-─────────────────────────────────────────────────────────── */
-function applyParam(fxId, pid, pct, source) {
-  pct = Math.min(100, Math.max(0, Math.round(pct)));
-  fxState[fxId].p[pid] = pct;
+/* ─── PARAM APPLY ───────────────────────────────────────── */
+function applyParam(fxId,pid,pct,source){
+  pct=Math.min(100,Math.max(0,Math.round(pct)));
+  fxState[fxId].p[pid]=pct;
   const kw=document.getElementById(domId('kw',fxId,pid));
-  if(kw){ const fx=EFFECTS.find(f=>f.id===fxId); kw.innerHTML=makeKnob(pct,fx.color); }
-  if(source!=='pct'){ const pi=document.getElementById(domId('pi',fxId,pid)); if(pi&&document.activeElement!==pi) pi.value=pct; }
-  if(source!=='real'){ const ri=document.getElementById(domId('ri',fxId,pid));
-    if(ri&&document.activeElement!==ri){ const fx=EFFECTS.find(f=>f.id===fxId); const pm=fx.params.find(p=>p.pid===pid);
-      if(pm&&pm.conv) ri.value=CONV[pm.conv].toReal(pct); }}
+  if(kw){const fx=EFFECTS.find(f=>f.id===fxId);kw.innerHTML=makeKnob(pct,fx.color);}
+  if(source!=='pct'){const pi=document.getElementById(domId('pi',fxId,pid));if(pi&&document.activeElement!==pi)pi.value=pct;}
+  if(source!=='real'){const ri=document.getElementById(domId('ri',fxId,pid));
+    if(ri&&document.activeElement!==ri){const fx=EFFECTS.find(f=>f.id===fxId);const pm=fx.params.find(p=>p.pid===pid);
+      if(pm&&pm.conv)ri.value=CONV[pm.conv].toReal(pct);}}
   serialSend(new Uint8Array([CMD_SET_PARAM,fxId,pid,pct]));
 }
-function onPctInput(fxId,pid,el){ let v=parseInt(el.value,10); if(isNaN(v))return; applyParam(fxId,pid,Math.min(100,Math.max(0,v)),'pct'); }
+function onPctInput(fxId,pid,el){let v=parseInt(el.value,10);if(isNaN(v))return;applyParam(fxId,pid,Math.min(100,Math.max(0,v)),'pct');}
 function onRealInput(fxId,pid,el){
-  const fx=EFFECTS.find(f=>f.id===fxId), pm=fx&&fx.params.find(p=>p.pid===pid);
+  const fx=EFFECTS.find(f=>f.id===fxId),pm=fx&&fx.params.find(p=>p.pid===pid);
   if(!pm||!pm.conv)return;
-  const c=CONV[pm.conv]; let v=parseFloat(el.value); if(isNaN(v))return;
+  const c=CONV[pm.conv];let v=parseFloat(el.value);if(isNaN(v))return;
   v=Math.min(c.realMax,Math.max(c.realMin,v));
   applyParam(fxId,pid,Math.min(100,Math.max(0,Math.round(c.fromReal(v)))),'real');
 }
-function onSelectChange(fxId,pid,value){ fxState[fxId].p[pid]=value; serialSend(new Uint8Array([CMD_SET_PARAM,fxId,pid,value])); }
+function onSelectChange(fxId,pid,value){fxState[fxId].p[pid]=value;serialSend(new Uint8Array([CMD_SET_PARAM,fxId,pid,value]));}
 
-/* ───────────────────────────────────────────────────────────
-   KNOB DRAG
-─────────────────────────────────────────────────────────── */
+/* ─── KNOB DRAG ─────────────────────────────────────────── */
 let drag=null;
-function startDrag(e,fxId,pid){ e.preventDefault(); drag={fxId,pid,startY:e.clientY,startVal:fxState[fxId].p[pid]};
-  document.addEventListener('mousemove',onDrag); document.addEventListener('mouseup',endDrag); }
-function startDragTouch(e,fxId,pid){ const t=e.touches[0]; drag={fxId,pid,startY:t.clientY,startVal:fxState[fxId].p[pid]};
-  document.addEventListener('touchmove',onDragTouch,{passive:false}); document.addEventListener('touchend',endDragTouch); }
-function onDrag(e){ if(!drag)return; applyParam(drag.fxId,drag.pid,Math.round(Math.min(100,Math.max(0,drag.startVal+(drag.startY-e.clientY)))),'drag'); }
-function onDragTouch(e){ e.preventDefault(); if(!drag)return; applyParam(drag.fxId,drag.pid,Math.round(Math.min(100,Math.max(0,drag.startVal+(drag.startY-e.touches[0].clientY)))),'drag'); }
-function endDrag(){ drag=null; document.removeEventListener('mousemove',onDrag); document.removeEventListener('mouseup',endDrag); }
-function endDragTouch(){ drag=null; document.removeEventListener('touchmove',onDragTouch); document.removeEventListener('touchend',endDragTouch); }
+function startDrag(e,fxId,pid){e.preventDefault();drag={fxId,pid,startY:e.clientY,startVal:fxState[fxId].p[pid]};
+  document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);}
+function startDragTouch(e,fxId,pid){const t=e.touches[0];drag={fxId,pid,startY:t.clientY,startVal:fxState[fxId].p[pid]};
+  document.addEventListener('touchmove',onDragTouch,{passive:false});document.addEventListener('touchend',endDragTouch);}
+function onDrag(e){if(!drag)return;applyParam(drag.fxId,drag.pid,Math.round(Math.min(100,Math.max(0,drag.startVal+(drag.startY-e.clientY)))),'drag');}
+function onDragTouch(e){e.preventDefault();if(!drag)return;applyParam(drag.fxId,drag.pid,Math.round(Math.min(100,Math.max(0,drag.startVal+(drag.startY-e.touches[0].clientY)))),'drag');}
+function endDrag(){drag=null;document.removeEventListener('mousemove',onDrag);document.removeEventListener('mouseup',endDrag);}
+function endDragTouch(){drag=null;document.removeEventListener('touchmove',onDragTouch);document.removeEventListener('touchend',endDragTouch);}
 
 function toggleFx(fxId){
   fxState[fxId].enabled=!fxState[fxId].enabled;
   const on=fxState[fxId].enabled;
-  const pedal=document.querySelector(`[data-fx-id="${fxId}"]`); if(pedal) pedal.classList.toggle('active',on);
-  const node=document.querySelector(`[data-fx-node="${fxId}"]`); if(node) node.classList.toggle('on',on);
-  const arr=document.querySelector(`[data-fx-arrow="${fxId}"]`);  if(arr)  arr.classList.toggle('on',on);
+  const pedal=document.querySelector(`[data-fx-id="${fxId}"]`);if(pedal)pedal.classList.toggle('active',on);
+  const node=document.querySelector(`[data-fx-node="${fxId}"]`);if(node)node.classList.toggle('on',on);
+  const arr=document.querySelector(`[data-fx-arrow="${fxId}"]`);if(arr)arr.classList.toggle('on',on);
   serialSend(new Uint8Array([CMD_TOGGLE,fxId,0,0]));
 }
-
-function loadPreset(slot){ serialSend(new Uint8Array([CMD_LOAD,slot,0,0])); toast(`Preset ${slot+1} loaded`); }
-function savePreset(slot){ serialSend(new Uint8Array([CMD_SAVE,slot,0,0])); toast(`Preset ${slot+1} saved`); }
-
+function loadPreset(slot){serialSend(new Uint8Array([CMD_LOAD,slot,0,0]));toast(`Preset ${slot+1} loaded`);}
+function savePreset(slot){serialSend(new Uint8Array([CMD_SAVE,slot,0,0]));toast(`Preset ${slot+1} saved`);}
 function applyStateBlob(data){
-  const b=new Uint8Array(data); if(b.length<60)return;
+  const b=new Uint8Array(data);if(b.length<60)return;
   for(let fxId=0;fxId<10;fxId++){
-    const base=fxId*6; fxState[fxId].enabled=b[base]!==0;
-    for(let p=0;p<5;p++) fxState[fxId].p[p]=b[base+1+p];
+    const base=fxId*6;fxState[fxId].enabled=b[base]!==0;
+    for(let p=0;p<5;p++)fxState[fxId].p[p]=b[base+1+p];
   }
-  buildPedals(); toast('State synced from device');
+  buildPedals();toast('State synced from device');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   TAB AUDIO CAPTURE → ESP32 CDC STREAM
-   ─────────────────────────────────────────────────────────
-   Uses getDisplayMedia() to capture the current browser tab's
-   audio. The captured PCM float32 is converted to PCM16 mono
-   and sent over WebSerial with packet framing:
-     [0xA0][LEN_HI][LEN_LO][PCM16-LE mono samples...]
-   44100 Hz mono → ~88 KB/s, well within CDC bandwidth.
-   The user hears audio through their normal speakers because
-   the AudioContext passes through to the destination node.
-═══════════════════════════════════════════════════════════ */
-const AUDIO_PKT_HEADER = 0xA0;
-const AUDIO_CHUNK_SAMPLES = 1024;  // ~23 ms per packet @ 44100 Hz
+/* ─── TAB AUDIO CAPTURE ─────────────────────────────────── */
+const AUDIO_PKT_HEADER=0xA0,AUDIO_CHUNK_SAMPLES=1024;
+let captureStream=null,captureCtx=null,captureProc=null,captureActive=false;
+let bytesSentTotal=0,lastStatsTime=0;
 
-let captureStream   = null;
-let captureCtx      = null;
-let captureProc     = null;
-let captureActive   = false;
-let bytesSentTotal  = 0;
-let lastStatsTime   = 0;
-
-async function toggleCapture() {
-  if (captureActive) { stopCapture(); return; }
-  if (!serialPort) { toast('Connect USB first before capturing audio'); return; }
+async function toggleCapture(){
+  if(captureActive){stopCapture();return;}
+  if(!serialPort){toast('Connect USB first');return;}
   await startCapture();
 }
-
-async function startCapture() {
-  try {
-    // Request tab audio — user must check "Share tab audio" in the dialog
-    captureStream = await navigator.mediaDevices.getDisplayMedia({
-      video: { width: 1, height: 1, frameRate: 1 },  // minimise video overhead
-      audio: {
-        channelCount: 1,
-        sampleRate: 44100,
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-      }
+async function startCapture(){
+  try{
+    captureStream=await navigator.mediaDevices.getDisplayMedia({
+      video:{width:1,height:1,frameRate:1},
+      audio:{channelCount:1,sampleRate:44100,echoCancellation:false,noiseSuppression:false,autoGainControl:false}
     });
-
-    // Drop video track immediately — we only need audio
-    captureStream.getVideoTracks().forEach(t => t.stop());
-
-    const audioTracks = captureStream.getAudioTracks();
-    if (!audioTracks.length) {
-      toast('No audio track captured. Make sure to check "Share tab audio".');
-      captureStream.getTracks().forEach(t => t.stop());
-      captureStream = null;
-      return;
-    }
-
-    captureCtx = new AudioContext({ sampleRate: 44100 });
-    const source = captureCtx.createMediaStreamSource(captureStream);
-
-    // ScriptProcessorNode: captures PCM float32 → convert to PCM16 → send to ESP32 only.
-    // Output buffer is intentionally left silent (all zeros).
-    // Audio comes out from GPIO18 (guitar + jam mix), not the system speaker.
-    captureProc = captureCtx.createScriptProcessor(AUDIO_CHUNK_SAMPLES, 1, 1);
-    captureProc.onaudioprocess = (e) => {
-      if (!serialPort) { stopCapture(); return; }
+    captureStream.getVideoTracks().forEach(t=>t.stop());
+    const audioTracks=captureStream.getAudioTracks();
+    if(!audioTracks.length){toast('No audio track — check "Share tab audio"');captureStream.getTracks().forEach(t=>t.stop());captureStream=null;return;}
+    captureCtx=new AudioContext({sampleRate:44100});
+    const source=captureCtx.createMediaStreamSource(captureStream);
+    captureProc=captureCtx.createScriptProcessor(AUDIO_CHUNK_SAMPLES,1,1);
+    captureProc.onaudioprocess=(e)=>{
+      if(!serialPort){stopCapture();return;}
       sendAudioChunk(e.inputBuffer.getChannelData(0));
-      // Output buffer stays zeroed → system speaker / Bluetooth = silent
     };
-
-    // source → processor only. NOT connected to ctx.destination.
-    source.connect(captureProc);
-
-    captureActive = true;
-    bytesSentTotal = 0;
-    lastStatsTime  = performance.now();
-    document.getElementById('btnCapture').textContent   = '■ STOP CAPTURE';
+    source.connect(captureProc); // NOT connected to destination — speaker stays silent
+    captureActive=true;bytesSentTotal=0;lastStatsTime=performance.now();
+    document.getElementById('btnCapture').textContent='■ STOP CAPTURE';
     document.getElementById('uacDot').classList.add('stream');
-    // Mute YouTube player — audio now routes exclusively through ESP32 GPIO18
-    if (ytPlayer && ytReady) ytPlayer.mute();
-    toast('Tab audio capturing — streaming to ESP32 (speaker muted)');
-
-    // Handle stream ending (user stops sharing)
-    captureStream.getAudioTracks()[0].addEventListener('ended', () => stopCapture());
-
-  } catch(e) {
-    if (e.name !== 'NotAllowedError') toast('Capture error: ' + e.message);
-    captureStream = null;
-  }
+    if(ytPlayer&&ytReady)ytPlayer.mute();
+    toast('Capturing tab audio → ESP32');
+    captureStream.getAudioTracks()[0].addEventListener('ended',()=>stopCapture());
+  }catch(e){if(e.name!=='NotAllowedError')toast('Capture error: '+e.message);captureStream=null;}
 }
-
-function stopCapture() {
-  if (captureProc) { captureProc.disconnect(); captureProc = null; }
-  if (captureCtx)  { captureCtx.close();       captureCtx = null; }
-  if (captureStream) { captureStream.getTracks().forEach(t => t.stop()); captureStream = null; }
-  captureActive = false;
-  document.getElementById('btnCapture').textContent = '▶ CAPTURE TAB';
+function stopCapture(){
+  if(captureProc){captureProc.disconnect();captureProc=null;}
+  if(captureCtx){captureCtx.close();captureCtx=null;}
+  if(captureStream){captureStream.getTracks().forEach(t=>t.stop());captureStream=null;}
+  captureActive=false;
+  document.getElementById('btnCapture').textContent='▶ CAPTURE TAB';
   document.getElementById('uacDot').classList.remove('stream');
-  document.getElementById('streamStats').textContent = '';
-  // Restore speaker output when capture ends
-  if (ytPlayer && ytReady) ytPlayer.unMute();
-  toast('Tab audio capture stopped — speaker restored');
+  document.getElementById('streamStats').textContent='';
+  if(ytPlayer&&ytReady)ytPlayer.unMute();
+  toast('Capture stopped — speaker restored');
 }
-
-function sendAudioChunk(floats) {
-  // Float32[-1..+1] → Int16[-32768..+32767]
-  const pcm16 = new Int16Array(floats.length);
-  for (let i = 0; i < floats.length; i++) {
-    const c = Math.max(-1, Math.min(1, floats[i]));
-    pcm16[i] = c < 0 ? (c * 32768) | 0 : (c * 32767) | 0;
-  }
-  const pcmBytes = new Uint8Array(pcm16.buffer);
-  const len = pcmBytes.length;                     // always AUDIO_CHUNK_SAMPLES × 2
-  const pkt = new Uint8Array(3 + len);
-  pkt[0] = AUDIO_PKT_HEADER;
-  pkt[1] = (len >> 8) & 0xFF;
-  pkt[2] =  len       & 0xFF;
-  pkt.set(pcmBytes, 3);
+function sendAudioChunk(floats){
+  const pcm16=new Int16Array(floats.length);
+  for(let i=0;i<floats.length;i++){const c=Math.max(-1,Math.min(1,floats[i]));pcm16[i]=c<0?(c*32768)|0:(c*32767)|0;}
+  const pcmBytes=new Uint8Array(pcm16.buffer);
+  const len=pcmBytes.length;
+  const pkt=new Uint8Array(3+len);
+  pkt[0]=AUDIO_PKT_HEADER;pkt[1]=(len>>8)&0xFF;pkt[2]=len&0xFF;pkt.set(pcmBytes,3);
   serialSend(pkt);
-
-  // Update throughput display every second
-  bytesSentTotal += pkt.length;
-  const now = performance.now();
-  if (now - lastStatsTime >= 1000) {
-    const kbps = ((bytesSentTotal / (now - lastStatsTime)) * 1000 / 1024).toFixed(1);
-    document.getElementById('streamStats').textContent = kbps + ' KB/s';
-    bytesSentTotal = 0;
-    lastStatsTime  = now;
+  bytesSentTotal+=pkt.length;
+  const now=performance.now();
+  if(now-lastStatsTime>=1000){
+    document.getElementById('streamStats').textContent=((bytesSentTotal/(now-lastStatsTime))*1000/1024).toFixed(1)+' KB/s';
+    bytesSentTotal=0;lastStatsTime=now;
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   YOUTUBE SEARCH  (Data API v3)
-═══════════════════════════════════════════════════════════ */
-let searchResults = [];
-let activeVideoId = null;
-
-async function doSearch() {
-  const apiKey = document.getElementById('apiKeyInput').value.trim();
-  const q = document.getElementById('searchInput').value.trim();
-  if (!apiKey) { toast('Enter your YouTube Data API v3 key'); return; }
-  if (!q) { toast('Enter a search term'); return; }
-  document.getElementById('resultsHeader').textContent = 'SEARCHING…';
-  document.getElementById('resultsList').innerHTML = '<div class="results-empty">Searching…</div>';
-  try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=12&key=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.error) { toast('YouTube API: ' + data.error.message); document.getElementById('resultsHeader').textContent = 'ERROR'; return; }
-    searchResults = data.items || [];
-    renderResults();
-  } catch(e) { toast('Search failed: ' + e.message); }
+/* ─── YOUTUBE SEARCH ────────────────────────────────────── */
+let searchResults=[],activeVideoId=null;
+async function doSearch(){
+  const apiKey=document.getElementById('apiKeyInput').value.trim();
+  const q=document.getElementById('searchInput').value.trim();
+  if(!apiKey){toast('Enter your YouTube API key');return;}
+  if(!q){toast('Enter a search term');return;}
+  document.getElementById('resultsHeader').textContent='SEARCHING…';
+  document.getElementById('resultsList').innerHTML='<div class="results-empty">Searching…</div>';
+  try{
+    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=12&key=${encodeURIComponent(apiKey)}`;
+    const res=await fetch(url);const data=await res.json();
+    if(data.error){toast('YouTube API: '+data.error.message);document.getElementById('resultsHeader').textContent='ERROR';return;}
+    searchResults=data.items||[];renderResults();
+  }catch(e){toast('Search failed: '+e.message);}
 }
-
-function renderResults() {
-  const list = document.getElementById('resultsList');
-  const hdr  = document.getElementById('resultsHeader');
-  if (!searchResults.length) { list.innerHTML='<div class="results-empty">No results found</div>'; hdr.textContent='NO RESULTS'; return; }
-  hdr.textContent = `${searchResults.length} RESULTS`;
-  list.innerHTML = searchResults.map((item,i) => {
-    const id    = item.id.videoId;
-    const title = item.snippet.title.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
-    const thumb = item.snippet.thumbnails?.default?.url || '';
-    const ch    = item.snippet.channelTitle;
-    const active = id === activeVideoId ? ' active' : '';
-    return `<div class="result-item${active}" onclick="loadVideo('${id}','${title.replace(/'/g,'\\\'')}')" data-vid="${id}">
+function renderResults(){
+  const list=document.getElementById('resultsList'),hdr=document.getElementById('resultsHeader');
+  if(!searchResults.length){list.innerHTML='<div class="results-empty">No results</div>';hdr.textContent='NO RESULTS';return;}
+  hdr.textContent=searchResults.length+' RESULTS';
+  list.innerHTML=searchResults.map(item=>{
+    const id=item.id.videoId;
+    const title=item.snippet.title.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+    const thumb=item.snippet.thumbnails?.default?.url||'';
+    const ch=item.snippet.channelTitle;
+    return `<div class="result-item${id===activeVideoId?' active':''}" onclick="loadVideo('${id}','${title.replace(/'/g,"\\'")}')" data-vid="${id}">
       <img class="result-thumb" src="${thumb}" alt="" loading="lazy">
       <div class="result-info">
         <div class="result-title">${title}</div>
@@ -870,201 +779,101 @@ function renderResults() {
   }).join('');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   YOUTUBE IFRAME PLAYER
-   ─────────────────────────────────────────────────────────
-   Player is initialised LAZILY on first loadVideo() call,
-   not immediately on onYouTubeIframeAPIReady — that way the
-   container is guaranteed visible and has real dimensions.
-═══════════════════════════════════════════════════════════ */
-let ytPlayer      = null;
-let ytReady       = false;
-let ytApiReady    = false;   // IFrame API script has loaded
-let ytTimerID     = null;
-let pendingVideoId = null;
-let isSeeking     = false;
+/* ─── YOUTUBE PLAYER ────────────────────────────────────── */
+let ytPlayer=null,ytReady=false,ytApiReady=false,ytTimerID=null,pendingVideoId=null,isSeeking=false;
 
-// Called by YouTube IFrame API when the script finishes loading.
-// We only set a flag here — actual player creation happens in createPlayer().
-function onYouTubeIframeAPIReady() {
-  ytApiReady = true;
-  // If a video was already requested before the API finished loading, create now
-  if (pendingVideoId) createPlayer(pendingVideoId);
+function onYouTubeIframeAPIReady(){ytApiReady=true;if(pendingVideoId)createPlayer(pendingVideoId);}
+
+function createPlayer(videoId){
+  if(ytPlayer){ytPlayer.loadVideoById(videoId);return;}
+  const noVid=document.getElementById('noVideo');if(noVid)noVid.style.display='none';
+  const originOk=location.protocol.startsWith('http');
+  const pv={autoplay:1,controls:1,disablekb:0,fs:0,modestbranding:1,rel:0,iv_load_policy:3,playsinline:1};
+  if(originOk)pv.origin=location.origin;
+  ytPlayer=new YT.Player('ytPlayerDiv',{videoId,height:'100%',width:'100%',playerVars:pv,
+    events:{
+      onReady:(e)=>{ytReady=true;e.target.playVideo();startProgressTimer();},
+      onStateChange:onYTStateChange,
+      onError:(e)=>toast('Player error: '+e.data)
+    }});
 }
-
-function createPlayer(videoId) {
-  // Guard: only create once
-  if (ytPlayer) {
-    ytPlayer.loadVideoById(videoId);
-    return;
-  }
-
-  // Hide placeholder, ensure container is visible
-  const noVid = document.getElementById('noVideo');
-  if (noVid) noVid.style.display = 'none';
-
-  // Build safe origin (file:// → omit; http/https → include)
-  const originOk = location.protocol.startsWith('http');
-  const playerVars = {
-    autoplay:        1,
-    controls:        1,   // show native controls as fallback
-    disablekb:       0,
-    fs:              0,
-    modestbranding:  1,
-    rel:             0,
-    iv_load_policy:  3,
-    playsinline:     1,
-  };
-  if (originOk) playerVars.origin = location.origin;
-
-  ytPlayer = new YT.Player('ytPlayerDiv', {
-    videoId,
-    height: '100%',
-    width:  '100%',
-    playerVars,
-    events: {
-      onReady: (e) => {
-        ytReady = true;
-        e.target.playVideo();
-        startProgressTimer();
-      },
-      onStateChange: onYTStateChange,
-      onError: (e) => toast('YouTube player error code: ' + e.data),
-    }
-  });
-}
-
-function loadVideo(videoId, title) {
-  activeVideoId = videoId;
-  document.querySelectorAll('.result-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.vid === videoId);
-  });
-  const np = document.getElementById('nowPlaying');
-  np.style.display = 'block'; np.textContent = title;
-
-  if (!ytApiReady) {
-    // API script still loading — store and wait
-    pendingVideoId = videoId;
-    return;
-  }
-  if (!ytPlayer || !ytReady) {
-    // API ready but player not yet created — create it now with this video
-    createPlayer(videoId);
-    return;
-  }
-  // Player already exists — just swap the video
+function loadVideo(videoId,title){
+  activeVideoId=videoId;
+  document.querySelectorAll('.result-item').forEach(el=>el.classList.toggle('active',el.dataset.vid===videoId));
+  const np=document.getElementById('nowPlaying');np.style.display='block';np.textContent=title;
+  if(!ytApiReady){pendingVideoId=videoId;return;}
+  if(!ytPlayer||!ytReady){createPlayer(videoId);return;}
   ytPlayer.loadVideoById(videoId);
 }
-
-function onYTStateChange(e) {
-  const btn = document.getElementById('btnPlayPause');
-  if (e.data === YT.PlayerState.PLAYING) {
-    btn.textContent = '⏸';
-  } else if (e.data === YT.PlayerState.ENDED) {
-    btn.textContent = '▶'; resetProgress();
-  } else {
-    btn.textContent = '▶';
-  }
+function onYTStateChange(e){
+  const btn=document.getElementById('btnPlayPause');
+  if(e.data===YT.PlayerState.PLAYING)btn.textContent='⏸';
+  else if(e.data===YT.PlayerState.ENDED){btn.textContent='▶';resetProgress();}
+  else btn.textContent='▶';
 }
-
-function togglePlay() {
-  if (!ytPlayer || !ytReady) return;
-  const st = ytPlayer.getPlayerState();
-  if (st === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
-  else ytPlayer.playVideo();
+function togglePlay(){
+  if(!ytPlayer||!ytReady)return;
+  ytPlayer.getPlayerState()===YT.PlayerState.PLAYING?ytPlayer.pauseVideo():ytPlayer.playVideo();
 }
-
-function seekRel(deltaSec) {
-  if (!ytPlayer || !ytReady) return;
-  const cur = ytPlayer.getCurrentTime() || 0;
-  ytPlayer.seekTo(Math.max(0, cur + deltaSec), true);
+function seekRel(d){if(!ytPlayer||!ytReady)return;ytPlayer.seekTo(Math.max(0,(ytPlayer.getCurrentTime()||0)+d),true);}
+function onSeekInput(el){
+  isSeeking=true;
+  const dur=ytPlayer&&ytReady?ytPlayer.getDuration():0;
+  const cur=(el.value/100)*dur;
+  document.getElementById('timeCur').textContent=fmtTime(cur);
+  document.getElementById('timeRem').textContent='-'+fmtTime(Math.max(0,dur-cur));
+  el.style.setProperty('--pct',el.value+'%');
 }
-
-function onSeekInput(el) {
-  isSeeking = true;
-  const dur = ytPlayer && ytReady ? ytPlayer.getDuration() : 0;
-  const cur = (el.value / 100) * dur;
-  document.getElementById('timeCur').textContent = fmtTime(cur);
-  document.getElementById('timeRem').textContent = '-' + fmtTime(Math.max(0, dur - cur));
-  el.style.setProperty('--pct', el.value + '%');
+function onSeekChange(el){
+  if(!ytPlayer||!ytReady){isSeeking=false;return;}
+  ytPlayer.seekTo((el.value/100)*(ytPlayer.getDuration()||0),true);isSeeking=false;
 }
-function onSeekChange(el) {
-  if (!ytPlayer || !ytReady) { isSeeking = false; return; }
-  const dur = ytPlayer.getDuration() || 0;
-  ytPlayer.seekTo((el.value / 100) * dur, true);
-  isSeeking = false;
+function startProgressTimer(){
+  if(ytTimerID)clearInterval(ytTimerID);
+  ytTimerID=setInterval(()=>{
+    if(!ytPlayer||!ytReady||isSeeking)return;
+    try{
+      const cur=ytPlayer.getCurrentTime()||0,dur=ytPlayer.getDuration()||0;
+      const pct=dur>0?(cur/dur*100):0;
+      document.getElementById('timeCur').textContent=fmtTime(cur);
+      document.getElementById('timeRem').textContent=dur>0?'-'+fmtTime(dur-cur):'–';
+      document.getElementById('timeTot').textContent=fmtTime(dur);
+      const sl=document.getElementById('seekSlider');sl.value=pct.toFixed(1);sl.style.setProperty('--pct',pct.toFixed(1)+'%');
+    }catch(e){}
+  },500);
 }
-
-function startProgressTimer() {
-  if (ytTimerID) clearInterval(ytTimerID);
-  ytTimerID = setInterval(() => {
-    if (!ytPlayer || !ytReady || isSeeking) return;
-    try {
-      const cur = ytPlayer.getCurrentTime() || 0;
-      const dur = ytPlayer.getDuration()    || 0;
-      const pct = dur > 0 ? (cur / dur * 100) : 0;
-      document.getElementById('timeCur').textContent = fmtTime(cur);
-      document.getElementById('timeRem').textContent = dur > 0 ? '-' + fmtTime(dur - cur) : '–';
-      document.getElementById('timeTot').textContent = fmtTime(dur);
-      const sl = document.getElementById('seekSlider');
-      sl.value = pct.toFixed(1);
-      sl.style.setProperty('--pct', pct.toFixed(1) + '%');
-    } catch(e) {}
-  }, 500);
+function resetProgress(){
+  document.getElementById('timeCur').textContent='0:00';
+  document.getElementById('timeRem').textContent='–';
+  const sl=document.getElementById('seekSlider');sl.value=0;sl.style.setProperty('--pct','0%');
 }
-
-function resetProgress() {
-  document.getElementById('timeCur').textContent = '0:00';
-  document.getElementById('timeRem').textContent = '–';
-  const sl = document.getElementById('seekSlider'); sl.value = 0; sl.style.setProperty('--pct','0%');
-}
-
-function fmtTime(sec) {
-  sec = Math.max(0, Math.floor(sec));
-  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
-  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+function fmtTime(sec){
+  sec=Math.max(0,Math.floor(sec));
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  if(h>0)return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   return `${m}:${String(s).padStart(2,'0')}`;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   TAB SWITCHING
-═══════════════════════════════════════════════════════════ */
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
-
+/* ─── TOAST ─────────────────────────────────────────────── */
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2600);
 }
 
-/* ───────────────────────────────────────────────────────────
-   TOAST
-─────────────────────────────────────────────────────────── */
-let toastTimer = null;
-function toast(msg) {
-  const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
-}
-
-/* ───────────────────────────────────────────────────────────
-   INIT
-─────────────────────────────────────────────────────────── */
+/* ─── INIT ──────────────────────────────────────────────── */
 buildPedals();
 buildPresets();
-// Restore saved API key
-const savedKey = localStorage.getItem('ytKey'); if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+const savedKey=localStorage.getItem('ytKey');if(savedKey)document.getElementById('apiKeyInput').value=savedKey;
 
-// Keyboard shortcuts (when not focused on an input)
-window.addEventListener('keydown', e => {
-  if (['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
-  const n = parseInt(e.key);
-  if (!isNaN(n)) { const idx=n===0?9:n-1; if(idx<EFFECTS.length) toggleFx(EFFECTS[idx].id); }
-  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-  if (e.code === 'ArrowLeft') seekRel(-5);
-  if (e.code === 'ArrowRight') seekRel(10);
+window.addEventListener('keydown',e=>{
+  if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
+  const n=parseInt(e.key);
+  if(!isNaN(n)){const idx=n===0?9:n-1;if(idx<EFFECTS.length)toggleFx(EFFECTS[idx].id);}
+  if(e.code==='Space'){e.preventDefault();togglePlay();}
+  if(e.code==='ArrowLeft')seekRel(-5);
+  if(e.code==='ArrowRight')seekRel(10);
 });
-
-
 </script>
 </body>
 </html>
