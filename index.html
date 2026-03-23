@@ -716,8 +716,7 @@ async function startCapture(){
     captureActive=true;bytesSentTotal=0;lastStatsTime=performance.now();
     document.getElementById('btnCapture').textContent='■ STOP CAPTURE';
     document.getElementById('uacDot').classList.add('stream');
-    if(ytPlayer&&ytReady)ytPlayer.mute();
-    toast('Capturing tab audio → ESP32');
+    toast('Capturing tab audio → ESP32 (mute speakers manually if needed)');
     captureStream.getAudioTracks()[0].addEventListener('ended',()=>stopCapture());
   }catch(e){if(e.name!=='NotAllowedError')toast('Capture error: '+e.message);captureStream=null;}
 }
@@ -729,8 +728,7 @@ function stopCapture(){
   document.getElementById('btnCapture').textContent='▶ CAPTURE TAB';
   document.getElementById('uacDot').classList.remove('stream');
   document.getElementById('streamStats').textContent='';
-  if(ytPlayer&&ytReady)ytPlayer.unMute();
-  toast('Capture stopped — speaker restored');
+  toast('Capture stopped');
 }
 function sendAudioChunk(floats){
   const pcm16=new Int16Array(floats.length);
@@ -751,7 +749,7 @@ function sendAudioChunk(floats){
 /* ─── YOUTUBE SEARCH ────────────────────────────────────── */
 let searchResults=[],activeVideoId=null;
 async function doSearch(){
-  const apiKey='AIzaSyBcYDl7TWnwhPV6DbAZN78xT8-rfuRgPA8';
+  const apiKey='YOUR_YOUTUBE_API_KEY_HERE';
   const q=document.getElementById('searchInput').value.trim();
   if(!apiKey){toast('Enter your YouTube API key');return;}
   if(!q){toast('Enter a search term');return;}
